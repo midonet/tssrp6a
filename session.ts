@@ -49,7 +49,8 @@ export class SRPSession {
   set S(S: BigInteger) {
     if (this._S) {
       throw new Error(
-        `Shared key (S) already set: ${bigIntegerToHex(this._S)}`);
+        `Shared key (S) already set: ${bigIntegerToHex(this._S)}`,
+      );
     }
 
     this._S = S;

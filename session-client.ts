@@ -2,7 +2,13 @@ import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
 import { SRPSession } from "./session";
-import { bigIntegerToHex, evenLengthHex, HexString, hexToBigInteger, utf8ToHex } from "./utils";
+import {
+  bigIntegerToHex,
+  evenLengthHex,
+  HexString,
+  hexToBigInteger,
+  utf8ToHex,
+} from "./utils";
 
 export enum SRPClientSessionState {
   INIT = "INIT",
@@ -113,7 +119,11 @@ export class SRPClientSession extends SRPSession {
     }
 
     const M2 = hexToBigInteger(evenLengthHex(M2hex));
-    const computedM2 = this.config.routines.computeServerEvidence(this.A, this.M1, this.S);
+    const computedM2 = this.config.routines.computeServerEvidence(
+      this.A,
+      this.M1,
+      this.S,
+    );
 
     if (!computedM2.equals(M2)) {
       throw new Error("Bad server credentials");
@@ -137,8 +147,7 @@ export class SRPClientSession extends SRPSession {
 
   set I(I: string) {
     if (this._I) {
-      throw new Error(
-        `User identity (I) already set: ${this._I}`);
+      throw new Error(`User identity (I) already set: ${this._I}`);
     }
 
     this._I = I;
@@ -154,8 +163,7 @@ export class SRPClientSession extends SRPSession {
 
   set P(P: string) {
     if (this._P) {
-      throw new Error(
-        `User password (P) already set: ${this._P}`);
+      throw new Error(`User password (P) already set: ${this._P}`);
     }
 
     this._P = P;
@@ -176,7 +184,8 @@ export class SRPClientSession extends SRPSession {
   set A(A: BigInteger) {
     if (this._A) {
       throw new Error(
-        `Public client value (A) already set: ${bigIntegerToHex(this._A)}`);
+        `Public client value (A) already set: ${bigIntegerToHex(this._A)}`,
+      );
     }
 
     if (!this.config.routines.isValidPublicValue(A)) {
@@ -197,7 +206,8 @@ export class SRPClientSession extends SRPSession {
   set M1(M1: BigInteger) {
     if (this._M1) {
       throw new Error(
-        `Client evidence (M1) already set: ${bigIntegerToHex(this._M1)}`);
+        `Client evidence (M1) already set: ${bigIntegerToHex(this._M1)}`,
+      );
     }
 
     this._M1 = M1;
@@ -205,7 +215,11 @@ export class SRPClientSession extends SRPSession {
 
   private _expectState(state: SRPClientSessionState): void {
     if (this.state !== state) {
-      throw new Error(`State violation: Session must be in ${state} state but is in ${this.state}`);
+      throw new Error(
+        `State violation: Session must be in ${state} state but is in ${
+          this.state
+        }`,
+      );
     }
   }
 }

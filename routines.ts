@@ -2,7 +2,12 @@ import { BigInteger } from "jsbn";
 
 import { SRPParameters } from "./parameters";
 import {
-  generateRandomBigInteger, generateRandomHex, hash, hashPadded, HexString, hexToBigInteger,
+  generateRandomBigInteger,
+  generateRandomHex,
+  hash,
+  hashPadded,
+  HexString,
+  hexToBigInteger,
 } from "./utils";
 
 // tslint:disable:max-line-length
@@ -38,7 +43,9 @@ export class SRPRoutines {
   }
 
   public computeK(): BigInteger {
-    return hexToBigInteger(this.hashPadded(this.parameters.N, this.parameters.g));
+    return hexToBigInteger(
+      this.hashPadded(this.parameters.N, this.parameters.g),
+    );
   }
 
   public generateRandomSalt(numBytes?: number): HexString {
@@ -71,9 +78,15 @@ export class SRPRoutines {
     return this.parameters.g.modPow(a, this.parameters.N);
   }
 
-  public computeServerPublicValue(k: BigInteger, v: BigInteger, b: BigInteger): BigInteger {
-    return this.parameters.g.modPow(b, this.parameters.N)
-      .add(v.multiply(k)).mod(this.parameters.N);
+  public computeServerPublicValue(
+    k: BigInteger,
+    v: BigInteger,
+    b: BigInteger,
+  ): BigInteger {
+    return this.parameters.g
+      .modPow(b, this.parameters.N)
+      .add(v.multiply(k))
+      .mod(this.parameters.N);
   }
 
   public isValidPublicValue(value: BigInteger): boolean {
@@ -84,16 +97,30 @@ export class SRPRoutines {
     return hexToBigInteger(this.hashPadded(A, B));
   }
 
-  public computeClientEvidence(_I: string, _s: BigInteger, A: BigInteger, B: BigInteger, S: BigInteger): BigInteger {
+  public computeClientEvidence(
+    _I: string,
+    _s: BigInteger,
+    A: BigInteger,
+    B: BigInteger,
+    S: BigInteger,
+  ): BigInteger {
     return hexToBigInteger(this.hash(A, B, S));
   }
 
-  public computeServerEvidence(A: BigInteger, M1: BigInteger, S: BigInteger): BigInteger {
+  public computeServerEvidence(
+    A: BigInteger,
+    M1: BigInteger,
+    S: BigInteger,
+  ): BigInteger {
     return hexToBigInteger(this.hash(A, M1, S));
   }
 
   public computeClientSessionKey(
-    k: BigInteger, x: BigInteger, u: BigInteger, a: BigInteger, B: BigInteger,
+    k: BigInteger,
+    x: BigInteger,
+    u: BigInteger,
+    a: BigInteger,
+    B: BigInteger,
   ): BigInteger {
     const exp = u.multiply(x).add(a);
     const tmp = this.parameters.g.modPow(x, this.parameters.N).multiply(k);
@@ -101,8 +128,15 @@ export class SRPRoutines {
     return B.subtract(tmp).modPow(exp, this.parameters.N);
   }
 
-  public computeServerSessionKey(v: BigInteger, u: BigInteger, A: BigInteger, b: BigInteger): BigInteger {
-    return v.modPow(u, this.parameters.N).multiply(A)
+  public computeServerSessionKey(
+    v: BigInteger,
+    u: BigInteger,
+    A: BigInteger,
+    b: BigInteger,
+  ): BigInteger {
+    return v
+      .modPow(u, this.parameters.N)
+      .multiply(A)
       .modPow(b, this.parameters.N);
   }
 }

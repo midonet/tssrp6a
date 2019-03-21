@@ -19,9 +19,11 @@ export function evenLengthHex(hex: HexString): HexString {
 }
 
 export function bytesToHex(bytes: ByteArray): string {
-  return Array.from(bytes).map((b) => {
-    return evenLengthHex(b.toString(16));
-  }).join("");
+  return Array.from(bytes)
+    .map((b) => {
+      return evenLengthHex(b.toString(16));
+    })
+    .join("");
 }
 
 export function hexToBytes(hexString: string): ByteArray {
@@ -99,11 +101,15 @@ export function hash(parameters: SRPParameters, ...as: any[]): HexString {
   return wordArrayToHex(parameters.H.finalize());
 }
 
-export function hashPadded(parameters: SRPParameters,
-                           targetLen: number,
-                           ...as: any[]): HexString {
-  return hash(parameters, ...as.map((a) =>
-    hexLeftPad(anyToHexString(a), targetLen)));
+export function hashPadded(
+  parameters: SRPParameters,
+  targetLen: number,
+  ...as: any[]
+): HexString {
+  return hash(
+    parameters,
+    ...as.map((a) => hexLeftPad(anyToHexString(a), targetLen)),
+  );
 }
 
 export function generateRandomHex(numBytes: number = 16): HexString {
@@ -115,14 +121,19 @@ export function generateRandomBigInteger(numBytes: number = 16): BigInteger {
     nextBytes(dest: number[]): void {
       const bytes = hexToBytes(generateRandomHex(dest.length));
       // eslint-disable-next-line no-param-reassign
-      bytes.forEach((b, i) => { dest[i] = b; });
+      bytes.forEach((b, i) => {
+        dest[i] = b;
+      });
     },
   });
 }
 
-export function createVerifierHexSalt(config: SRPConfig, I: string,
-                                      s: HexString,
-                                      P: string): HexString {
+export function createVerifierHexSalt(
+  config: SRPConfig,
+  I: string,
+  s: HexString,
+  P: string,
+): HexString {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -142,8 +153,12 @@ export function createVerifierHexSalt(config: SRPConfig, I: string,
   return bigIntegerToHex(routines.computeVerifier(x));
 }
 
-export function createVerifier(config: SRPConfig, I: string, s: string,
-                               P: string): HexString {
+export function createVerifier(
+  config: SRPConfig,
+  I: string,
+  s: string,
+  P: string,
+): HexString {
   return createVerifierHexSalt(config, I, utf8ToHex(s), P);
 }
 
@@ -152,10 +167,12 @@ export interface IVerifierAndSalt {
   s: HexString;
 }
 
-export function createVerifierAndSalt(config: SRPConfig,
-                                      I: string,
-                                      P: string,
-                                      sBytes?: number): IVerifierAndSalt {
+export function createVerifierAndSalt(
+  config: SRPConfig,
+  I: string,
+  P: string,
+  sBytes?: number,
+): IVerifierAndSalt {
   const s = config.routines.generateRandomSalt(sBytes);
 
   return {
