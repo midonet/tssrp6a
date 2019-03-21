@@ -14,13 +14,13 @@ export class SRPSession {
   /**
    * Shared session key "S"
    */
-  private _S: BigInteger;
+  private _S?: BigInteger;
 
   /**
    * Number of milliseconds between session activity before timing out this
    * session.
    */
-  private _timeoutMillis: number;
+  private _timeoutMillis?: number;
 
   /**
    * Id of timer used for expiration timeout.

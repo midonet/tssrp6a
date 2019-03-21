@@ -31,22 +31,22 @@ export class SRPClientSession extends SRPSession {
   /**
    * User identity "I"
    */
-  private _I: string;
+  private _I?: string;
 
   /**
    * User password "P"
    */
-  private _P: string;
+  private _P?: string;
 
   /**
    * Client public value "A"
    */
-  private _A: BigInteger;
+  private _A?: BigInteger;
 
   /**
    * Client evidence message "M1"
    */
-  private _M1: BigInteger;
+  private _M1?: BigInteger;
 
   constructor(config: SRPConfig, timeoutMillis?: number) {
     super(config, timeoutMillis);
