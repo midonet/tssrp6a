@@ -26,7 +26,7 @@ export class SRPClientSession extends SRPSession {
   /**
    * Current client auth state
    */
-  private stateStep: SRPClientSessionState;
+  protected stateStep: SRPClientSessionState;
 
   /**
    * User identity "I"

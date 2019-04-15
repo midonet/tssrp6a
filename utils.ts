@@ -79,9 +79,9 @@ export function hexLeftPad(hexString: string, targetLength: number): string {
   }
 }
 
-export function anyToHexString(a: any): HexString {
+export function anyToHexString(a: string | BigInteger | ByteArray): HexString {
   if (typeof a === "string") {
-    return a;
+    return evenLengthHex(a);
   } else if (a instanceof BigInteger) {
     return bigIntegerToHex(a);
   } else if (a instanceof Uint8Array) {

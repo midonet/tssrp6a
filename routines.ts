@@ -78,17 +78,6 @@ export class SRPRoutines {
     return this.parameters.g.modPow(a, this.parameters.N);
   }
 
-  public computeServerPublicValue(
-    k: BigInteger,
-    v: BigInteger,
-    b: BigInteger,
-  ): BigInteger {
-    return this.parameters.g
-      .modPow(b, this.parameters.N)
-      .add(v.multiply(k))
-      .mod(this.parameters.N);
-  }
-
   public isValidPublicValue(value: BigInteger): boolean {
     return value.mod(this.parameters.N).signum() !== 0;
   }
@@ -126,18 +115,6 @@ export class SRPRoutines {
     const tmp = this.parameters.g.modPow(x, this.parameters.N).multiply(k);
 
     return B.subtract(tmp).modPow(exp, this.parameters.N);
-  }
-
-  public computeServerSessionKey(
-    v: BigInteger,
-    u: BigInteger,
-    A: BigInteger,
-    b: BigInteger,
-  ): BigInteger {
-    return v
-      .modPow(u, this.parameters.N)
-      .multiply(A)
-      .modPow(b, this.parameters.N);
   }
 }
 

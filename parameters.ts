@@ -5,6 +5,8 @@ import { hash } from "./utils";
 
 export type PrimeNumber = BigInteger | string;
 
+type HashingAlgorithm = keyof typeof SRPParameters.H;
+
 // tslint:disable:variable-name
 export class SRPParameters {
   public static N: {
@@ -19,26 +21,25 @@ export class SRPParameters {
   public static g: BigInteger;
 
   public static H: {
-    SHA1: string;
-    SHA224: string;
-    SHA256: string;
-    SHA384: string;
-    SHA512: string;
-    SHA3: string;
-    RIPEMD160: string;
+    SHA1: HashingAlgorithm;
+    SHA224: HashingAlgorithm;
+    SHA256: HashingAlgorithm;
+    SHA384: HashingAlgorithm;
+    SHA512: HashingAlgorithm;
+    SHA3: HashingAlgorithm;
+    RIPEMD160: HashingAlgorithm;
   };
 
   private _N: BigInteger;
   private _NBits: number;
   private _g: BigInteger;
-  private _HString: string;
   private _H: CryptoJS.Hasher;
   private _HBits: number;
 
   constructor(
     N: PrimeNumber = SRPParameters.N[2048],
     g: PrimeNumber = SRPParameters.g,
-    H: string = SRPParameters.H.SHA512,
+    H: HashingAlgorithm = SRPParameters.H.SHA512,
   ) {
     this._N = this._ensureBigInteger(N);
     this._NBits = this._N.bitLength();
@@ -50,7 +51,6 @@ export class SRPParameters {
       throw new Error("Unknown hash function");
     }
 
-    this._HString = H;
     this._H = hasher.create();
     // Calculate size of hash output
     const hashNumBytes = hash(this, "a").length / 2;
@@ -71,10 +71,6 @@ export class SRPParameters {
 
   get H(): any {
     return this._H;
-  }
-
-  get HString(): string {
-    return this._HString;
   }
 
   get HBits(): number {
