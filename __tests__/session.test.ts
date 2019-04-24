@@ -6,14 +6,13 @@ import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPSession } from "../session";
 import { SRPClientSession } from "../session-client";
+import { SRPServerSession } from "../session-server";
 import {
   bigIntegerToHex,
   createVerifier,
-  evenLengthHex,
   generateRandomBigInteger,
   generateRandomHex,
   hash,
-  hexToBigInteger,
   utf8ToHex,
 } from "../utils";
 
@@ -27,78 +26,6 @@ class TestSRPSession extends SRPSession {
     super(TestConfig, timeoutMillis);
   }
 }
-
-const serverStep2 = (
-  routines: SRPRoutines,
-  N: BigInteger,
-  B: BigInteger,
-  s: string,
-  v: string,
-  b: BigInteger,
-  I: string,
-  AHex: string,
-  M1Hex: string,
-) => {
-  if (!AHex) {
-    throw new Error("Client public value (A) must not be null");
-  }
-
-  const A = hexToBigInteger(evenLengthHex(AHex));
-
-  if (!routines.isValidPublicValue(A)) {
-    throw new Error(`Invalid Client public value (A): ${AHex}`);
-  }
-
-  if (!M1Hex) {
-    throw new Error("Client evidence (M1) must not be null");
-  }
-
-  const M1 = hexToBigInteger(evenLengthHex(M1Hex));
-
-  const u = routines.computeU(A, B);
-  const S = computeServerSessionKey(N, hexToBigInteger(v), u, A, b);
-
-  const computedM1 = routines.computeClientEvidence(
-    I,
-    hexToBigInteger(s),
-    A,
-    B,
-    S,
-  );
-
-  if (!computedM1.equals(M1)) {
-    throw new Error("Bad client credentials");
-  }
-
-  const M2 = routines.computeServerEvidence(A, M1, S);
-
-  return bigIntegerToHex(M2);
-};
-
-const computeServerPublicValue = (
-  parameters: SRPParameters,
-  k: BigInteger,
-  v: BigInteger,
-  b: BigInteger,
-): BigInteger => {
-  return parameters.g
-    .modPow(b, parameters.N)
-    .add(v.multiply(k))
-    .mod(parameters.N);
-};
-
-const computeServerSessionKey = (
-  N: BigInteger,
-  v: BigInteger,
-  u: BigInteger,
-  A: BigInteger,
-  b: BigInteger,
-): BigInteger => {
-  return v
-    .modPow(u, N)
-    .multiply(A)
-    .modPow(b, N);
-};
 
 /**
  * Preconditions:
@@ -116,93 +43,110 @@ const computeServerSessionKey = (
  * Step 3:
  * * Client validates server using 'M2'
  */
-test.skip("#SRPSession success", (t) => {
-  t.plan(2);
+test("#SRPSession success", (t) => {
+  t.plan(1);
   const testUsername = generateRandomHex(16);
   const testPassword = generateRandomHex(16);
 
-  const clientSession = new SRPClientSession(TestConfig);
   const routines = TestConfig.routines;
 
-  const testSalt = routines.generateRandomSalt(16);
+  // salt is generated during signup, and sent to client.step2
+  const salt = routines.generateRandomSalt(16);
+  const saltHex = utf8ToHex(salt);
 
-  const serverStorage = {
-    s: testSalt,
-    v: createVerifier(TestConfig, testUsername, testSalt, testPassword),
-  };
+  // verifier is generated during signup, and read from storage to server.step1
+  const verifierHex = createVerifier(
+    TestConfig,
+    testUsername,
+    salt,
+    testPassword,
+  );
 
+  const serverSession = new SRPServerSession(TestConfig);
+  // server gets identifier from client, salt+verifier from db (from signup)
+  const B = serverSession.step1(testUsername, saltHex, verifierHex);
+
+  const clientSession = new SRPClientSession(TestConfig);
   clientSession.step1(testUsername, testPassword);
-  const b = routines.generatePrivateValue();
-  const B = computeServerPublicValue(
-    TestConfig.parameters,
-    routines.computeK(),
-    hexToBigInteger(serverStorage.s),
-    b,
-  );
-  const clientCredentials = clientSession.step2(
-    serverStorage.s,
-    bigIntegerToHex(B),
-  );
+  const { A, M1 } = clientSession.step2(saltHex, bigIntegerToHex(B));
 
-  t.doesNotThrow(() => {
-    const M2 = serverStep2(
-      routines,
-      TestConfig.parameters.N,
-      B,
-      serverStorage.s,
-      serverStorage.v,
-      b,
-      testUsername,
-      clientCredentials.A,
-      clientCredentials.M1,
-    );
-    clientSession.step3(M2);
-  });
-
-  t.end();
+  const M2 = serverSession.step2(A, M1);
+  clientSession.step3(M2);
+  t.ok("finished step 3");
 });
 
 test("error - wrong password", (t) => {
+  t.plan(1);
   const testUsername = generateRandomHex(16);
   const testPassword = generateRandomHex(16);
   const diffPassword = `${testPassword}-diff`;
 
+  const routines = TestConfig.routines;
+
+  const salt = routines.generateRandomSalt(16);
+  const saltHex = utf8ToHex(salt);
+
+  const verifierHex = createVerifier(
+    TestConfig,
+    testUsername,
+    salt,
+    testPassword,
+  );
+
+  const serverSession = new SRPServerSession(TestConfig);
+  const B = serverSession.step1(testUsername, saltHex, verifierHex);
+
   const clientSession = new SRPClientSession(TestConfig);
-
-  const testSalt = TestConfig.routines.generateRandomSalt(16);
-
-  const serverStorage = {
-    s: utf8ToHex(testSalt),
-    v: createVerifier(TestConfig, testUsername, testSalt, testPassword),
-  };
-
   clientSession.step1(testUsername, diffPassword);
-  const B = computeServerPublicValue(
-    TestConfig.parameters,
-    TestConfig.routines.computeK(),
-    hexToBigInteger(serverStorage.s),
-    hexToBigInteger(serverStorage.v),
-  );
-  const clientCredentials = clientSession.step2(
-    serverStorage.s,
-    bigIntegerToHex(B),
-  );
-  t.throws(
-    () =>
-      serverStep2(
-        TestConfig.routines,
-        TestConfig.parameters.N,
-        B,
-        serverStorage.s,
-        serverStorage.v,
-        TestConfig.routines.generatePrivateValue(),
-        testUsername,
-        clientCredentials.A,
-        clientCredentials.M1,
-      ),
-    /bad client credentials/i,
-  );
-  t.end();
+  const { A, M1 } = clientSession.step2(saltHex, bigIntegerToHex(B));
+
+  t.throws(() => {
+    serverSession.step2(A, M1);
+  }, /bad client credentials/i);
+});
+
+test("error - not in step 1", (t) => {
+  t.plan(1);
+
+  const serverSession = new SRPServerSession(TestConfig);
+
+  t.throws(() => {
+    serverSession.step2(
+      bigIntegerToHex(BigInteger.ONE),
+      bigIntegerToHex(BigInteger.ONE),
+    );
+  }, /step2 not from step1/i);
+});
+
+test("error - bad/empty A or M1", (t) => {
+  t.plan(5);
+
+  t.throws(() => {
+    const serverSession = new SRPServerSession(TestConfig);
+    serverSession.step1("pepi", "01", "02");
+    serverSession.step2("", bigIntegerToHex(BigInteger.ONE));
+  }, /Client public value \(A\) must not be null/i);
+  t.throws(() => {
+    const serverSession = new SRPServerSession(TestConfig);
+    serverSession.step1("pepi", "01", "02");
+    serverSession.step2(null as any, bigIntegerToHex(BigInteger.ONE));
+  }, /Client public value \(A\) must not be null/i);
+  t.throws(() => {
+    const serverSession = new SRPServerSession(TestConfig);
+    serverSession.step1("pepi", "01", "02");
+    serverSession.step2(bigIntegerToHex(BigInteger.ONE), "");
+  }, /Client evidence \(M1\) must not be null/i);
+  t.throws(() => {
+    const serverSession = new SRPServerSession(TestConfig);
+    serverSession.step1("pepi", "01", "02");
+    serverSession.step2(bigIntegerToHex(BigInteger.ONE), null as any);
+  }, /Client evidence \(M1\) must not be null/i);
+  t.throws(() => {
+    const serverSession = new SRPServerSession(TestConfig);
+    serverSession.step1("pepi", "01", "02");
+    const badA = bigIntegerToHex(BigInteger.ZERO);
+    serverSession.step2(badA, bigIntegerToHex(BigInteger.ONE));
+  }, /Invalid Client public value \(A\): /i);
 });
 
 test("#SRPSessionGetters success (set values)", (t) => {
