@@ -1,5 +1,6 @@
 /* eslint-disable no-fallthrough */
 import { BigInteger } from "jsbn";
+import { range } from "ramda";
 import { test } from "../../../test/util";
 import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
@@ -8,12 +9,13 @@ import { SRPSession } from "../session";
 import { SRPClientSession } from "../session-client";
 import { SRPServerSession } from "../session-server";
 import {
-  bigIntegerToHex,
+  bigIntegerToBase64,
+  bigIntegerToWordArray,
   createVerifier,
   generateRandomBigInteger,
-  generateRandomHex,
+  generateRandomString,
   hash,
-  utf8ToHex,
+  wordArrayTobase64,
 } from "../utils";
 
 const TestConfig = new SRPConfig(
@@ -26,6 +28,37 @@ class TestSRPSession extends SRPSession {
     super(TestConfig, timeoutMillis);
   }
 }
+
+test('#SRPSession canary for password that is "uneven" as hex string', (t) => {
+  t.plan(2);
+  const testUsername = "peppapig";
+  const testPassword = "edge00044bc49a26"; // problematic as reported by https://midobugs.atlassian.net/browse/ISS-325
+
+  // salt is generated during signup, and sent to client.step2
+  const salt = "Sxq7Zc++Cqb1DqUvTOmkxg==";
+
+  // verifier is generated during signup, and read from storage to server.step1
+  const verifier = createVerifier(TestConfig, testUsername, salt, testPassword);
+  t.strictEqual(
+    verifier,
+    "jXLJ8zZRisLNvmpvZXwKrQGxEG5B/0JbuMy/+3Mp26pgk1bvcbMhkqKCYFVV4FU35jdIsKKIMeAZUaLBrIDUx+uz3ND/" +
+      "lh6bOx3tOzJ2WJPqjh9jcSDVBRqyk8hTE/wYpZI6RIbuaHxYrjaFSc/jidYvg/fqHLLSLqrWdDRlthMly64Qu0Vada" +
+      "p0eDbN1qCYyi4TtejACzJdKcGvTGfnsetZOSRnFb52rG5DCnGPEySRDn6Lu7cUVVFNVL+TJEsH3iN9KnoLV6lHUM7+" +
+      "eWy3Qn1z0jfvkmmwR7de4ZZYk0r1sz04FoGk+wsJIoGakaHJR2mb5wnZYFEr57VkAXLA2g==",
+  );
+
+  const serverSession = new SRPServerSession(TestConfig);
+  // server gets identifier from client, salt+verifier from db (from signup)
+  const B = serverSession.step1(testUsername, salt, verifier);
+
+  const clientSession = new SRPClientSession(TestConfig);
+  clientSession.step1(testUsername, testPassword);
+  const { A, M1 } = clientSession.step2(salt, B);
+
+  const M2 = serverSession.step2(A, M1);
+  clientSession.step3(M2);
+  t.pass("Canary test passes");
+});
 
 /**
  * Preconditions:
@@ -44,61 +77,57 @@ class TestSRPSession extends SRPSession {
  * * Client validates server using 'M2'
  */
 test("#SRPSession success", (t) => {
-  t.plan(1);
-  const testUsername = generateRandomHex(16);
-  const testPassword = generateRandomHex(16);
+  const TEST_COUNT = 20;
+  t.plan(TEST_COUNT);
+  range(0, TEST_COUNT).forEach((i) => {
+    const testUsername = generateRandomString(10);
+    const testPassword = generateRandomString(15);
 
-  const routines = TestConfig.routines;
+    // salt is generated during signup, and sent to client.step2
+    const salt = TestConfig.routines.generateRandomSalt(16);
 
-  // salt is generated during signup, and sent to client.step2
-  const salt = routines.generateRandomSalt(16);
-  const saltHex = utf8ToHex(salt);
+    // verifier is generated during signup, and read from storage to server.step1
+    const verifier = createVerifier(
+      TestConfig,
+      testUsername,
+      salt,
+      testPassword,
+    );
 
-  // verifier is generated during signup, and read from storage to server.step1
-  const verifierHex = createVerifier(
-    TestConfig,
-    testUsername,
-    salt,
-    testPassword,
-  );
+    const serverSession = new SRPServerSession(TestConfig);
+    // server gets identifier from client, salt+verifier from db (from signup)
+    const B = serverSession.step1(testUsername, salt, verifier);
 
-  const serverSession = new SRPServerSession(TestConfig);
-  // server gets identifier from client, salt+verifier from db (from signup)
-  const B = serverSession.step1(testUsername, saltHex, verifierHex);
+    const clientSession = new SRPClientSession(TestConfig);
+    clientSession.step1(testUsername, testPassword);
+    const { A, M1 } = clientSession.step2(salt, B);
 
-  const clientSession = new SRPClientSession(TestConfig);
-  clientSession.step1(testUsername, testPassword);
-  const { A, M1 } = clientSession.step2(saltHex, bigIntegerToHex(B));
-
-  const M2 = serverSession.step2(A, M1);
-  clientSession.step3(M2);
-  t.ok("finished step 3");
+    const M2 = serverSession.step2(A, M1);
+    clientSession.step3(M2);
+    t.pass(
+      `Random test #${i} user:${testUsername}, password:${testPassword}, salt: ${salt}`,
+    );
+  });
 });
 
 test("error - wrong password", (t) => {
   t.plan(1);
-  const testUsername = generateRandomHex(16);
-  const testPassword = generateRandomHex(16);
+  const testUsername = generateRandomString(10);
+  const testPassword = generateRandomString(15);
   const diffPassword = `${testPassword}-diff`;
 
   const routines = TestConfig.routines;
 
   const salt = routines.generateRandomSalt(16);
-  const saltHex = utf8ToHex(salt);
 
-  const verifierHex = createVerifier(
-    TestConfig,
-    testUsername,
-    salt,
-    testPassword,
-  );
+  const verifier = createVerifier(TestConfig, testUsername, salt, testPassword);
 
   const serverSession = new SRPServerSession(TestConfig);
-  const B = serverSession.step1(testUsername, saltHex, verifierHex);
+  const B = serverSession.step1(testUsername, salt, verifier);
 
   const clientSession = new SRPClientSession(TestConfig);
   clientSession.step1(testUsername, diffPassword);
-  const { A, M1 } = clientSession.step2(saltHex, bigIntegerToHex(B));
+  const { A, M1 } = clientSession.step2(salt, B);
 
   t.throws(() => {
     serverSession.step2(A, M1);
@@ -112,40 +141,61 @@ test("error - not in step 1", (t) => {
 
   t.throws(() => {
     serverSession.step2(
-      bigIntegerToHex(BigInteger.ONE),
-      bigIntegerToHex(BigInteger.ONE),
+      bigIntegerToBase64(BigInteger.ONE),
+      bigIntegerToBase64(BigInteger.ONE),
     );
   }, /step2 not from step1/i);
+});
+
+test('error - not in step "init"', (t) => {
+  t.plan(1);
+  const testUsername = generateRandomString(10);
+  const testPassword = generateRandomString(15);
+
+  const routines = TestConfig.routines;
+
+  const salt = routines.generateRandomSalt(16);
+
+  const verifier = createVerifier(TestConfig, testUsername, salt, testPassword);
+
+  const serverSession = new SRPServerSession(TestConfig);
+  serverSession.step1(testUsername, salt, verifier);
+
+  t.throws(() => {
+    serverSession.step1(testUsername, salt, verifier);
+  }, /step1 not from init/i);
 });
 
 test("error - bad/empty A or M1", (t) => {
   t.plan(5);
 
+  const someBase64 = "YmFzZTY0";
+
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", "01", "02");
-    serverSession.step2("", bigIntegerToHex(BigInteger.ONE));
+    serverSession.step1("pepi", someBase64, someBase64);
+    serverSession.step2("", bigIntegerToBase64(BigInteger.ONE));
   }, /Client public value \(A\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", "01", "02");
-    serverSession.step2(null as any, bigIntegerToHex(BigInteger.ONE));
+    serverSession.step1("pepi", someBase64, someBase64);
+    serverSession.step2(null as any, bigIntegerToBase64(BigInteger.ONE));
   }, /Client public value \(A\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", "01", "02");
-    serverSession.step2(bigIntegerToHex(BigInteger.ONE), "");
+    serverSession.step1("pepi", someBase64, someBase64);
+    serverSession.step2(someBase64, "");
   }, /Client evidence \(M1\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", "01", "02");
-    serverSession.step2(bigIntegerToHex(BigInteger.ONE), null as any);
+    serverSession.step1("pepi", someBase64, someBase64);
+    serverSession.step2(someBase64, null as any);
   }, /Client evidence \(M1\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", "01", "02");
-    const badA = bigIntegerToHex(BigInteger.ZERO);
-    serverSession.step2(badA, bigIntegerToHex(BigInteger.ONE));
+    serverSession.step1("pepi", someBase64, someBase64);
+    const badA = bigIntegerToBase64(BigInteger.ZERO);
+    serverSession.step2(badA, someBase64);
   }, /Invalid Client public value \(A\): /i);
 });
 
@@ -156,7 +206,12 @@ test("#SRPSessionGetters success (set values)", (t) => {
 
   t.doesNotThrow(() => session.S);
   t.equals(session.sharedKey, session.S);
-  t.equals(session.hashedSharedKey, hash(session.config.parameters, session.S));
+  t.equals(
+    session.hashedSharedKey,
+    wordArrayTobase64(
+      hash(session.config.parameters, bigIntegerToWordArray(session.S)),
+    ),
+  );
   t.end();
 });
 

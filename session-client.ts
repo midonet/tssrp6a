@@ -2,13 +2,7 @@ import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
 import { SRPSession } from "./session";
-import {
-  bigIntegerToHex,
-  evenLengthHex,
-  HexString,
-  hexToBigInteger,
-  utf8ToHex,
-} from "./utils";
+import { Base64String, base64ToBigInteger, bigIntegerToBase64 } from "./utils";
 
 export enum SRPClientSessionState {
   INIT = "INIT",
@@ -18,8 +12,8 @@ export enum SRPClientSessionState {
 }
 
 export interface ISRPClientCredentials {
-  A: HexString;
-  M1: HexString;
+  A: Base64String;
+  M1: Base64String;
 }
 
 export class SRPClientSession extends SRPSession {
@@ -73,59 +67,59 @@ export class SRPClientSession extends SRPSession {
     this._registerActivity();
   }
 
-  public step2(sHex: HexString, BHex: HexString): ISRPClientCredentials {
+  public step2(salt: Base64String, B: Base64String): ISRPClientCredentials {
     this._expectState(SRPClientSessionState.STEP_1);
     this._throwOnTimeout();
 
-    if (!sHex) {
+    if (!salt) {
       throw new Error("Salt (s) must not be null");
     }
 
-    const s = hexToBigInteger(evenLengthHex(sHex));
+    const s = base64ToBigInteger(salt);
 
-    if (!BHex) {
+    if (!B) {
       throw new Error("Public server value (B) must not be null");
     }
 
-    const B = hexToBigInteger(evenLengthHex(BHex));
+    const BInt = base64ToBigInteger(B);
 
     const routines = this.config.routines;
 
-    const x = routines.computeX(this.I, bigIntegerToHex(s), utf8ToHex(this.P));
+    const x = routines.computeX(this.I, s, this.P);
     // Remove password from memory since we don"t need it anymore
     this._clearP();
     const a = routines.generatePrivateValue();
     this.A = routines.computeClientPublicValue(a);
     const k = routines.computeK();
-    const u = routines.computeU(this.A, B);
-    this.S = routines.computeClientSessionKey(k, x, u, a, B);
-    this.M1 = routines.computeClientEvidence(this.I, s, this.A, B, this.S);
+    const u = routines.computeU(this.A, BInt);
+    this.S = routines.computeClientSessionKey(k, x, u, a, BInt);
+    this.M1 = routines.computeClientEvidence(this.I, s, this.A, BInt, this.S);
 
     this.stateStep = SRPClientSessionState.STEP_2;
     this._registerActivity();
 
     return {
-      A: bigIntegerToHex(this.A),
-      M1: bigIntegerToHex(this.M1),
+      A: bigIntegerToBase64(this.A),
+      M1: bigIntegerToBase64(this.M1),
     };
   }
 
-  public step3(M2hex: HexString): void {
+  public step3(M2: Base64String): void {
     this._expectState(SRPClientSessionState.STEP_2);
     this._throwOnTimeout();
 
-    if (!M2hex) {
+    if (!M2) {
       throw new Error("Server evidence (M2) must not be null");
     }
 
-    const M2 = hexToBigInteger(evenLengthHex(M2hex));
+    const M2Int = base64ToBigInteger(M2);
     const computedM2 = this.config.routines.computeServerEvidence(
       this.A,
       this.M1,
       this.S,
     );
 
-    if (!computedM2.equals(M2)) {
+    if (!computedM2.equals(M2Int)) {
       throw new Error("Bad server credentials");
     }
 
@@ -184,12 +178,12 @@ export class SRPClientSession extends SRPSession {
   set A(A: BigInteger) {
     if (this._A) {
       throw new Error(
-        `Public client value (A) already set: ${bigIntegerToHex(this._A)}`,
+        `Public client value (A) already set: ${this._A.toString(16)}`,
       );
     }
 
     if (!this.config.routines.isValidPublicValue(A)) {
-      throw new Error(`Bad client public value (A): ${bigIntegerToHex(A)}`);
+      throw new Error(`Bad client public value (A): ${A.toString(16)}`);
     }
 
     this._A = A;
@@ -206,7 +200,7 @@ export class SRPClientSession extends SRPSession {
   set M1(M1: BigInteger) {
     if (this._M1) {
       throw new Error(
-        `Client evidence (M1) already set: ${bigIntegerToHex(this._M1)}`,
+        `Client evidence (M1) already set: ${this._M1.toString(16)}`,
       );
     }
 

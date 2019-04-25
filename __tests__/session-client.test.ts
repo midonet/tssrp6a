@@ -5,7 +5,11 @@ import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPClientSession, SRPClientSessionState } from "../session-client";
-import { generateRandomBigInteger, generateRandomHex } from "../utils";
+import {
+  generateRandomBase64,
+  generateRandomBigInteger,
+  generateRandomString,
+} from "../utils";
 
 const TestConfig = new SRPConfig(
   new SRPParameters(),
@@ -34,8 +38,8 @@ class TestSRPClientSession extends SRPClientSession {
 
   public assumeStep1(): void {
     this._registerActivity();
-    this.I = generateRandomHex();
-    this.P = generateRandomHex();
+    this.I = generateRandomString(16);
+    this.P = generateRandomString(16);
   }
 
   public assumeStep2(): void {
@@ -69,8 +73,8 @@ test("#SRPGetters failure (not-set values)", (t) => {
 test("#SRPSetters success (not set yet)", (t) => {
   const session = new TestSRPClientSession();
 
-  const I = generateRandomHex();
-  const P = generateRandomHex();
+  const I = generateRandomBase64(16);
+  const P = generateRandomBase64(16);
   const A = generateRandomBigInteger();
   const M1 = generateRandomBigInteger();
 
@@ -92,8 +96,8 @@ test("#SRPSetters success (not set yet)", (t) => {
 test("#SRPSetters failure (already set)", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_3);
 
-  const I = generateRandomHex();
-  const P = generateRandomHex();
+  const I = generateRandomString(16);
+  const P = generateRandomString(16);
   const A = generateRandomBigInteger();
   const M1 = generateRandomBigInteger();
 
@@ -130,7 +134,9 @@ function stateErrorMatch(
 test("#StateTransitionFromINIT step1 - success", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.INIT);
 
-  t.doesNotThrow(() => session.step1(generateRandomHex(), generateRandomHex()));
+  t.doesNotThrow(() =>
+    session.step1(generateRandomString(16), generateRandomString(16)),
+  );
   t.end();
 });
 test("#StateTransitionFromINIT step2 - failure", (t) => {
@@ -164,7 +170,9 @@ test("#StateTransitionFrom1 step1 - failure", (t) => {
 test("#StateTransitionFrom1 step2 - success", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_1);
 
-  t.doesNotThrow(() => session.step2(generateRandomHex(), generateRandomHex()));
+  t.doesNotThrow(() =>
+    session.step2(generateRandomBase64(16), generateRandomBase64(16)),
+  );
   t.end();
 });
 test("#StateTransitionFrom1 step3 - failure", (t) => {
@@ -198,7 +206,7 @@ test("#StateTransitionFrom2 step2 - failure", (t) => {
 test("#StateTransitionFrom2 step3 - success", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_2);
 
-  t.throws(() => session.step3(generateRandomHex()), /bad server/i);
+  t.throws(() => session.step3(generateRandomBase64(16)), /bad server/i);
   t.end();
 });
 
@@ -232,50 +240,54 @@ test("#StateTransitionFrom3 step3 - success", (t) => {
 
 test("#ParameterValidation1 All correct", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.INIT);
-  t.doesNotThrow(() => session.step1(generateRandomHex(), generateRandomHex()));
+  t.doesNotThrow(() =>
+    session.step1(generateRandomBase64(16), generateRandomBase64(16)),
+  );
   t.end();
 });
 
 test("#ParameterValidation1 Null/Undefined Identity", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.INIT);
-  t.throws(() => session.step1(null!, generateRandomHex()), /null/i);
+  t.throws(() => session.step1(null!, generateRandomString(16)), /null/i);
   t.end();
 });
 
 test("#ParameterValidation1 Empty Identity", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.INIT);
-  t.throws(() => session.step1("", generateRandomHex()), /empty/i);
+  t.throws(() => session.step1("", generateRandomString(16)), /empty/i);
   t.end();
 });
 
 test("#ParameterValidation1 Null/Undefined password", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.INIT);
-  t.throws(() => session.step1(generateRandomHex(), null!), /null/i);
+  t.throws(() => session.step1(generateRandomString(16), null!), /null/i);
   t.end();
 });
 
 test("#ParameterValidation2 All correct", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_1);
-  t.doesNotThrow(() => session.step2(generateRandomHex(), generateRandomHex()));
+  t.doesNotThrow(() =>
+    session.step2(generateRandomBase64(16), generateRandomBase64(16)),
+  );
   t.end();
 });
 
 test("#ParameterValidation2 Null/Undefined salt", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_1);
-  t.throws(() => session.step2(null!, generateRandomHex()), /null/i);
+  t.throws(() => session.step2(null!, generateRandomBase64(16)), /null/i);
   t.end();
 });
 
 test("#ParameterValidation2 Null/Undefined B", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_1);
-  t.throws(() => session.step2(generateRandomHex(), null!), /null/i);
+  t.throws(() => session.step2(generateRandomBase64(16), null!), /null/i);
   t.end();
 });
 
 test("#ParameterValidation3 All correct", (t) => {
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_2);
   // It throws because the fake values don't allow the verification to work
-  t.throws(() => session.step3(generateRandomHex()), /bad server/i);
+  t.throws(() => session.step3(generateRandomBase64(16)), /bad server/i);
   t.end();
 });
 
@@ -327,10 +339,10 @@ test("#Timeout Step 3", (t) => {
 test("#Timeout password clear after step 2", (t) => {
   const session = new TestSRPClientSession();
 
-  const I = generateRandomHex();
-  const P = generateRandomHex();
-  const s = generateRandomHex();
-  const B = generateRandomHex();
+  const I = generateRandomString(16);
+  const P = generateRandomString(16);
+  const s = generateRandomBase64(16);
+  const B = generateRandomBase64(16);
 
   session.step1(I, P);
 

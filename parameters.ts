@@ -1,7 +1,7 @@
 import * as CryptoJS from "crypto-js";
 import { BigInteger } from "jsbn";
 
-import { hash } from "./utils";
+import { hashBitCount } from "./utils";
 
 export type PrimeNumber = BigInteger | string;
 
@@ -53,8 +53,7 @@ export class SRPParameters {
 
     this._H = hasher.create();
     // Calculate size of hash output
-    const hashNumBytes = hash(this, "a").length / 2;
-    this._HBits = hashNumBytes * 8;
+    this._HBits = hashBitCount(this);
   }
 
   get N(): BigInteger {

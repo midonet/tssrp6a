@@ -1,6 +1,6 @@
 import { BigInteger } from "jsbn";
-import { bigIntegerToHex, SRPConfig, SRPParameters } from ".";
-import { evenLengthHex, hexToBigInteger } from "./utils";
+import { SRPConfig, SRPParameters } from ".";
+import { Base64String, base64ToBigInteger, bigIntegerToBase64 } from "./utils";
 
 type SRPServerStateStep =
   | ISRPServerStateStepInit
@@ -12,7 +12,7 @@ interface ISRPServerStateStepInit {
 interface ISRPServerStateStep1 {
   step: "1";
   identifier: string;
-  salt: string;
+  salt: BigInteger;
   verifier: BigInteger;
   b: BigInteger;
   B: BigInteger;
@@ -28,67 +28,79 @@ export class SRPServerSession {
     this.config = config;
   }
 
-  public step1(identifier: string, salt: string, verifierHex: string) {
+  public step1(identifier: string, salt: Base64String, verifier: Base64String) {
     if (this.state.step !== "init") {
       throw new Error("step1 not from init");
     }
 
     const b = this.config.routines.generatePrivateValue();
     const k = this.config.routines.computeK();
-    const verifier = hexToBigInteger(verifierHex);
-    const B = computeServerPublicValue(this.config.parameters, k, verifier, b);
-    this.state = { step: "1", identifier, salt, verifier, b, B };
-    return B;
+    const verifierInt = base64ToBigInteger(verifier);
+    const B = computeServerPublicValue(
+      this.config.parameters,
+      k,
+      verifierInt,
+      b,
+    );
+    this.state = {
+      step: "1",
+      identifier,
+      salt: base64ToBigInteger(salt),
+      verifier: verifierInt,
+      b,
+      B,
+    };
+    return bigIntegerToBase64(B);
   }
 
-  public step2(AHex: string, M1Hex: string) {
+  public step2(A: Base64String, M1: Base64String) {
     if (this.state.step !== "1") {
       throw new Error("step2 not from step1");
     }
 
-    if (!AHex) {
+    if (!A) {
       throw new Error("Client public value (A) must not be null");
     }
 
-    const A = hexToBigInteger(evenLengthHex(AHex));
+    const AInt = base64ToBigInteger(A);
 
-    if (!this.config.routines.isValidPublicValue(A)) {
-      throw new Error(`Invalid Client public value (A): ${AHex}`);
+    if (!this.config.routines.isValidPublicValue(AInt)) {
+      throw new Error(`Invalid Client public value (A): ${A}`);
     }
 
     const { identifier, salt, verifier, b, B } = this.state;
 
-    if (!M1Hex) {
+    if (!M1) {
       throw new Error("Client evidence (M1) must not be null");
     }
 
-    const M1 = hexToBigInteger(evenLengthHex(M1Hex));
+    const M1Int = base64ToBigInteger(M1);
 
-    const u = this.config.routines.computeU(A, B);
+    const u = this.config.routines.computeU(AInt, B);
     const S = computeServerSessionKey(
       this.config.parameters.N,
       verifier,
       u,
-      A,
+      AInt,
       b,
     );
 
     const computedM1 = this.config.routines.computeClientEvidence(
       identifier,
-      hexToBigInteger(salt),
-      A,
+      salt,
+      AInt,
       B,
       S,
     );
 
-    if (!computedM1.equals(M1)) {
+    if (!computedM1.equals(M1Int)) {
       throw new Error("Bad client credentials");
     }
 
-    const M2 = this.config.routines.computeServerEvidence(A, M1, S);
+    const M2 = this.config.routines.computeServerEvidence(AInt, M1Int, S);
 
     this.state = { step: "2" };
-    return bigIntegerToHex(M2);
+    return bigIntegerToBase64(M2);
   }
 }
 

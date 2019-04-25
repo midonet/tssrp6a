@@ -2,12 +2,15 @@ import { BigInteger } from "jsbn";
 
 import { SRPParameters } from "./parameters";
 import {
+  Base64String,
+  bigIntegerToBase64,
+  bigIntegerToWordArray,
   generateRandomBigInteger,
-  generateRandomHex,
   hash,
   hashPadded,
-  HexString,
-  hexToBigInteger,
+  stringToBigInteger,
+  wordArrayTobase64,
+  wordArrayToBigInteger,
 } from "./utils";
 
 // tslint:disable:max-line-length
@@ -33,30 +36,39 @@ export class SRPRoutines {
     return this._parameters;
   }
 
-  public hash(...as: any[]): HexString {
+  public hash(...as: CryptoJS.WordArray[]): CryptoJS.WordArray {
     return hash(this.parameters, ...as);
   }
 
-  public hashPadded(...as: any[]): HexString {
+  public hashPadded(...as: CryptoJS.WordArray[]): CryptoJS.WordArray {
     const targetLength = Math.trunc((this.parameters.NBits + 7) / 8);
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
+  public hashAsBase64(key: BigInteger): Base64String {
+    return wordArrayTobase64(this.hash(bigIntegerToWordArray(key)));
+  }
+
   public computeK(): BigInteger {
-    return hexToBigInteger(
-      this.hashPadded(this.parameters.N, this.parameters.g),
+    return wordArrayToBigInteger(
+      this.hashPadded(
+        bigIntegerToWordArray(this.parameters.N),
+        bigIntegerToWordArray(this.parameters.g),
+      ),
     );
   }
 
-  public generateRandomSalt(numBytes?: number): HexString {
+  public generateRandomSalt(numBytes?: number): Base64String {
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
     const saltBytes = numBytes || (2 * this.parameters.HBits) / 8;
-    return generateRandomHex(saltBytes);
+    return bigIntegerToBase64(generateRandomBigInteger(saltBytes));
   }
 
-  public computeX(_I: string, sHex: HexString, PHex: HexString): BigInteger {
-    return hexToBigInteger(this.hash(sHex, this.hash(PHex)));
+  public computeX(_I: string, s: BigInteger, P: string): BigInteger {
+    return wordArrayToBigInteger(
+      this.hash(bigIntegerToWordArray(s), this.hash(stringToBigInteger(P))),
+    );
   }
 
   public computeVerifier(x: BigInteger): BigInteger {
@@ -83,7 +95,9 @@ export class SRPRoutines {
   }
 
   public computeU(A: BigInteger, B: BigInteger): BigInteger {
-    return hexToBigInteger(this.hashPadded(A, B));
+    return wordArrayToBigInteger(
+      this.hashPadded(bigIntegerToWordArray(A), bigIntegerToWordArray(B)),
+    );
   }
 
   public computeClientEvidence(
@@ -93,7 +107,13 @@ export class SRPRoutines {
     B: BigInteger,
     S: BigInteger,
   ): BigInteger {
-    return hexToBigInteger(this.hash(A, B, S));
+    return wordArrayToBigInteger(
+      this.hash(
+        bigIntegerToWordArray(A),
+        bigIntegerToWordArray(B),
+        bigIntegerToWordArray(S),
+      ),
+    );
   }
 
   public computeServerEvidence(
@@ -101,7 +121,13 @@ export class SRPRoutines {
     M1: BigInteger,
     S: BigInteger,
   ): BigInteger {
-    return hexToBigInteger(this.hash(A, M1, S));
+    return wordArrayToBigInteger(
+      this.hash(
+        bigIntegerToWordArray(A),
+        bigIntegerToWordArray(M1),
+        bigIntegerToWordArray(S),
+      ),
+    );
   }
 
   public computeClientSessionKey(

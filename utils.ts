@@ -4,13 +4,30 @@ import { BigInteger } from "jsbn";
 import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
 
-const WordArray = CryptoJS.lib.WordArray;
-const Hex = CryptoJS.enc.Hex;
+export type Base64String = string;
 
-export type ByteArray = Uint8Array;
-export type HexString = string;
+const identity = <T>(a: T) => a;
 
-export function evenLengthHex(hex: HexString): HexString {
+export const bigIntegerToWordArray = (n: BigInteger): CryptoJS.WordArray =>
+  CryptoJS.enc.Hex.parse(evenLengthHex(n.toString(16)));
+
+export const wordArrayToBigInteger = (words: CryptoJS.WordArray): BigInteger =>
+  new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
+
+export const wordArrayTobase64 = (words: CryptoJS.WordArray): Base64String =>
+  CryptoJS.enc.Base64.stringify(words);
+
+export const base64ToWordArray = (base64: Base64String): CryptoJS.WordArray =>
+  CryptoJS.enc.Base64.parse(base64);
+
+export const bigIntegerToBase64 = (n: BigInteger): Base64String =>
+  wordArrayTobase64(bigIntegerToWordArray(n));
+
+export const base64ToBigInteger = (base64: Base64String): BigInteger => {
+  return wordArrayToBigInteger(base64ToWordArray(base64));
+};
+
+export function evenLengthHex(hex: string): string {
   if (hex.length % 2 === 1) {
     return `0${hex}`;
   } else {
@@ -18,122 +35,81 @@ export function evenLengthHex(hex: HexString): HexString {
   }
 }
 
-export function bytesToHex(bytes: ByteArray): string {
-  return Array.from(bytes)
-    .map((b) => {
-      return evenLengthHex(b.toString(16));
-    })
-    .join("");
-}
-
-export function hexToBytes(hexString: string): ByteArray {
-  const hexByteLength = hexString.length / 2;
-
-  const byteArray = new Uint8Array(hexByteLength);
-
-  for (let i = 0, j = 0; i < hexString.length; i += 2, j += 1) {
-    byteArray[j] = parseInt(hexString.substring(i, i + 2), 16);
-  }
-
-  return byteArray;
-}
-
-export function hexToBigInteger(hexString: string): BigInteger {
-  return new BigInteger(hexString, 16);
-}
-
-export function hexToWordArray(hexString: string): CryptoJS.WordArray {
-  return Hex.parse(hexString);
-}
-
-export function bigIntegerToHex(n: BigInteger): string {
-  return evenLengthHex(n.toString(16));
-}
-
-export function utf8ToBytes(str: string): ByteArray {
+/**
+ * Convert some string into CryptoJS.WordArray, suitable for hashing.
+ * @param str Any string, like a username, email, or password
+ */
+export function stringToBigInteger(str: string): CryptoJS.WordArray {
   const bytes = new Uint8Array(str.length);
-
   for (let i = 0; i < str.length; ++i) {
     bytes[i] = str.charCodeAt(i);
   }
 
-  return bytes;
+  const hexString = Array.from(bytes)
+    .map((b) => {
+      return evenLengthHex(b.toString(16));
+    })
+    .join("");
+
+  return CryptoJS.enc.Hex.parse(hexString);
 }
 
-export function utf8ToHex(str: string): HexString {
-  return bytesToHex(utf8ToBytes(str));
-}
-
-export function wordArrayToHex(array: CryptoJS.WordArray): string {
-  return Hex.stringify(array);
-}
-
-export function hexLeftPad(hexString: string, targetLength: number): string {
+const padWordArray = (targetLength: number) => (
+  words: CryptoJS.WordArray,
+): CryptoJS.WordArray => {
+  const hexString = CryptoJS.enc.Hex.stringify(words);
   const currentByteLength = hexString.length / 2;
   const byteLengthDiff = targetLength - currentByteLength;
 
-  if (byteLengthDiff > 0) {
-    return "00".repeat(byteLengthDiff) + hexString;
-  } else {
-    return hexString.substring(-byteLengthDiff);
-  }
-}
+  return CryptoJS.enc.Hex.parse(
+    byteLengthDiff > 0
+      ? "00".repeat(byteLengthDiff) + hexString
+      : hexString.substring(-byteLengthDiff),
+  );
+};
 
-export function anyToHexString(a: string | BigInteger | ByteArray): HexString {
-  if (typeof a === "string") {
-    return evenLengthHex(a);
-  } else if (a instanceof BigInteger) {
-    return bigIntegerToHex(a);
-  } else if (a instanceof Uint8Array) {
-    return bytesToHex(a);
-  } else {
-    throw new Error(`Don"t know how to convert ${a} to hex string`);
-  }
-}
-
-export function hash(parameters: SRPParameters, ...as: any[]): HexString {
-  parameters.H.reset();
-
-  as.map((a) => anyToHexString(a))
-    .map((hs: HexString) => hexToWordArray(hs))
-    .forEach((wa: CryptoJS.WordArray) => parameters.H.update(wa));
-
-  return wordArrayToHex(parameters.H.finalize());
+export function hash(
+  parameters: SRPParameters,
+  ...as: CryptoJS.WordArray[]
+): CryptoJS.WordArray {
+  return hashPadded(parameters, null, ...as);
 }
 
 export function hashPadded(
   parameters: SRPParameters,
-  targetLen: number,
-  ...as: any[]
-): HexString {
-  return hash(
-    parameters,
-    ...as.map((a) => hexLeftPad(anyToHexString(a), targetLen)),
+  targetLen: number | null,
+  ...as: CryptoJS.WordArray[]
+): CryptoJS.WordArray {
+  parameters.H.reset();
+
+  as.map(targetLen !== null ? padWordArray(targetLen) : identity).forEach(
+    (wa: CryptoJS.WordArray) => parameters.H.update(wa),
   );
+
+  return parameters.H.finalize();
 }
 
-export function generateRandomHex(numBytes: number = 16): HexString {
-  return wordArrayToHex(WordArray.random(numBytes) as any);
+const generateRandom = (numBytes: number = 16): CryptoJS.WordArray => {
+  return CryptoJS.lib.WordArray.random(numBytes) as any;
+};
+
+export function generateRandomBase64(numBytes: number = 16): Base64String {
+  return bigIntegerToBase64(generateRandomBigInteger(numBytes));
 }
+
+export const generateRandomString = (characterCount: number = 10): string =>
+  CryptoJS.enc.Hex.stringify(generateRandom(characterCount / 2));
 
 export function generateRandomBigInteger(numBytes: number = 16): BigInteger {
-  return new BigInteger(numBytes * 8, {
-    nextBytes(dest: number[]): void {
-      const bytes = hexToBytes(generateRandomHex(dest.length));
-      // eslint-disable-next-line no-param-reassign
-      bytes.forEach((b, i) => {
-        dest[i] = b;
-      });
-    },
-  });
+  return wordArrayToBigInteger(generateRandom(numBytes));
 }
 
-export function createVerifierHexSalt(
+export function createVerifier(
   config: SRPConfig,
   I: string,
-  s: HexString,
+  s: Base64String,
   P: string,
-): HexString {
+): Base64String {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -148,23 +124,14 @@ export function createVerifierHexSalt(
 
   const routines = config.routines;
 
-  const x = routines.computeX(I, evenLengthHex(s), utf8ToHex(P));
+  const x = routines.computeX(I, base64ToBigInteger(s), P);
 
-  return bigIntegerToHex(routines.computeVerifier(x));
-}
-
-export function createVerifier(
-  config: SRPConfig,
-  I: string,
-  s: string,
-  P: string,
-): HexString {
-  return createVerifierHexSalt(config, I, utf8ToHex(s), P);
+  return bigIntegerToBase64(routines.computeVerifier(x));
 }
 
 export interface IVerifierAndSalt {
-  v: HexString;
-  s: HexString;
+  v: Base64String;
+  s: Base64String;
 }
 
 export function createVerifierAndSalt(
@@ -177,6 +144,9 @@ export function createVerifierAndSalt(
 
   return {
     s,
-    v: createVerifierHexSalt(config, I, s, P),
+    v: createVerifier(config, I, s, P),
   };
 }
+
+export const hashBitCount = (parameters: SRPParameters): number =>
+  wordArrayToBigInteger(hash(parameters, base64ToWordArray("Cg=="))).bitCount();
