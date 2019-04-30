@@ -2,7 +2,6 @@
 import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
-import { Base64String, bigIntegerToBase64 } from "./utils";
 
 // tslint:disable:variable-name
 export class SRPSession {
@@ -48,9 +47,7 @@ export class SRPSession {
 
   set S(S: BigInteger) {
     if (this._S) {
-      throw new Error(
-        `Shared key (S) already set: ${bigIntegerToBase64(this._S)}`,
-      );
+      throw new Error(`Shared key (S) already set: ${this._S.toString(16)}`);
     }
 
     this._S = S;
@@ -60,7 +57,7 @@ export class SRPSession {
     return this.S;
   }
 
-  get hashedSharedKey(): Base64String {
+  get hashedSharedKey(): BigInteger {
     return this.config.routines.hashAsBase64(this.sharedKey);
   }
 

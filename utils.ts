@@ -4,8 +4,6 @@ import { BigInteger } from "jsbn";
 import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
 
-export type Base64String = string;
-
 const identity = <T>(a: T) => a;
 
 export const bigIntegerToWordArray = (n: BigInteger): CryptoJS.WordArray =>
@@ -13,19 +11,6 @@ export const bigIntegerToWordArray = (n: BigInteger): CryptoJS.WordArray =>
 
 export const wordArrayToBigInteger = (words: CryptoJS.WordArray): BigInteger =>
   new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
-
-export const wordArrayTobase64 = (words: CryptoJS.WordArray): Base64String =>
-  CryptoJS.enc.Base64.stringify(words);
-
-export const base64ToWordArray = (base64: Base64String): CryptoJS.WordArray =>
-  CryptoJS.enc.Base64.parse(base64);
-
-export const bigIntegerToBase64 = (n: BigInteger): Base64String =>
-  wordArrayTobase64(bigIntegerToWordArray(n));
-
-export const base64ToBigInteger = (base64: Base64String): BigInteger => {
-  return wordArrayToBigInteger(base64ToWordArray(base64));
-};
 
 export function evenLengthHex(hex: string): string {
   if (hex.length % 2 === 1) {
@@ -39,7 +24,7 @@ export function evenLengthHex(hex: string): string {
  * Convert some string into CryptoJS.WordArray, suitable for hashing.
  * @param str Any string, like a username, email, or password
  */
-export function stringToBigInteger(str: string): CryptoJS.WordArray {
+export function stringToWordArray(str: string): CryptoJS.WordArray {
   const bytes = new Uint8Array(str.length);
   for (let i = 0; i < str.length; ++i) {
     bytes[i] = str.charCodeAt(i);
@@ -93,10 +78,6 @@ const generateRandom = (numBytes: number = 16): CryptoJS.WordArray => {
   return CryptoJS.lib.WordArray.random(numBytes) as any;
 };
 
-export function generateRandomBase64(numBytes: number = 16): Base64String {
-  return bigIntegerToBase64(generateRandomBigInteger(numBytes));
-}
-
 export const generateRandomString = (characterCount: number = 10): string =>
   CryptoJS.enc.Hex.stringify(generateRandom(characterCount / 2));
 
@@ -107,9 +88,9 @@ export function generateRandomBigInteger(numBytes: number = 16): BigInteger {
 export function createVerifier(
   config: SRPConfig,
   I: string,
-  s: Base64String,
+  s: BigInteger,
   P: string,
-): Base64String {
+): BigInteger {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -124,14 +105,14 @@ export function createVerifier(
 
   const routines = config.routines;
 
-  const x = routines.computeX(I, base64ToBigInteger(s), P);
+  const x = routines.computeX(I, s, P);
 
-  return bigIntegerToBase64(routines.computeVerifier(x));
+  return routines.computeVerifier(x);
 }
 
 export interface IVerifierAndSalt {
-  v: Base64String;
-  s: Base64String;
+  v: BigInteger;
+  s: BigInteger;
 }
 
 export function createVerifierAndSalt(
@@ -149,4 +130,6 @@ export function createVerifierAndSalt(
 }
 
 export const hashBitCount = (parameters: SRPParameters): number =>
-  wordArrayToBigInteger(hash(parameters, base64ToWordArray("Cg=="))).bitCount();
+  wordArrayToBigInteger(
+    hash(parameters, bigIntegerToWordArray(BigInteger.ONE)),
+  ).bitCount();

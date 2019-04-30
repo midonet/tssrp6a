@@ -2,14 +2,11 @@ import { BigInteger } from "jsbn";
 
 import { SRPParameters } from "./parameters";
 import {
-  Base64String,
-  bigIntegerToBase64,
   bigIntegerToWordArray,
   generateRandomBigInteger,
   hash,
   hashPadded,
-  stringToBigInteger,
-  wordArrayTobase64,
+  stringToWordArray,
   wordArrayToBigInteger,
 } from "./utils";
 
@@ -45,8 +42,8 @@ export class SRPRoutines {
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
-  public hashAsBase64(key: BigInteger): Base64String {
-    return wordArrayTobase64(this.hash(bigIntegerToWordArray(key)));
+  public hashAsBase64(key: BigInteger): BigInteger {
+    return wordArrayToBigInteger(this.hash(bigIntegerToWordArray(key)));
   }
 
   public computeK(): BigInteger {
@@ -58,16 +55,16 @@ export class SRPRoutines {
     );
   }
 
-  public generateRandomSalt(numBytes?: number): Base64String {
+  public generateRandomSalt(numBytes?: number): BigInteger {
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
     const saltBytes = numBytes || (2 * this.parameters.HBits) / 8;
-    return bigIntegerToBase64(generateRandomBigInteger(saltBytes));
+    return generateRandomBigInteger(saltBytes);
   }
 
   public computeX(_I: string, s: BigInteger, P: string): BigInteger {
     return wordArrayToBigInteger(
-      this.hash(bigIntegerToWordArray(s), this.hash(stringToBigInteger(P))),
+      this.hash(bigIntegerToWordArray(s), this.hash(stringToWordArray(P))),
     );
   }
 

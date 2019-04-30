@@ -1,6 +1,5 @@
 import { BigInteger } from "jsbn";
 import { SRPConfig, SRPParameters } from ".";
-import { Base64String, base64ToBigInteger, bigIntegerToBase64 } from "./utils";
 
 type SRPServerStateStep =
   | ISRPServerStateStepInit
@@ -28,32 +27,26 @@ export class SRPServerSession {
     this.config = config;
   }
 
-  public step1(identifier: string, salt: Base64String, verifier: Base64String) {
+  public step1(identifier: string, salt: BigInteger, verifier: BigInteger) {
     if (this.state.step !== "init") {
       throw new Error("step1 not from init");
     }
 
     const b = this.config.routines.generatePrivateValue();
     const k = this.config.routines.computeK();
-    const verifierInt = base64ToBigInteger(verifier);
-    const B = computeServerPublicValue(
-      this.config.parameters,
-      k,
-      verifierInt,
-      b,
-    );
+    const B = computeServerPublicValue(this.config.parameters, k, verifier, b);
     this.state = {
       step: "1",
       identifier,
-      salt: base64ToBigInteger(salt),
-      verifier: verifierInt,
+      salt,
+      verifier,
       b,
       B,
     };
-    return bigIntegerToBase64(B);
+    return B;
   }
 
-  public step2(A: Base64String, M1: Base64String) {
+  public step2(A: BigInteger, M1: BigInteger) {
     if (this.state.step !== "1") {
       throw new Error("step2 not from step1");
     }
@@ -62,10 +55,8 @@ export class SRPServerSession {
       throw new Error("Client public value (A) must not be null");
     }
 
-    const AInt = base64ToBigInteger(A);
-
-    if (!this.config.routines.isValidPublicValue(AInt)) {
-      throw new Error(`Invalid Client public value (A): ${A}`);
+    if (!this.config.routines.isValidPublicValue(A)) {
+      throw new Error(`Invalid Client public value (A): ${A.toString(16)}`);
     }
 
     const { identifier, salt, verifier, b, B } = this.state;
@@ -74,33 +65,31 @@ export class SRPServerSession {
       throw new Error("Client evidence (M1) must not be null");
     }
 
-    const M1Int = base64ToBigInteger(M1);
-
-    const u = this.config.routines.computeU(AInt, B);
+    const u = this.config.routines.computeU(A, B);
     const S = computeServerSessionKey(
       this.config.parameters.N,
       verifier,
       u,
-      AInt,
+      A,
       b,
     );
 
     const computedM1 = this.config.routines.computeClientEvidence(
       identifier,
       salt,
-      AInt,
+      A,
       B,
       S,
     );
 
-    if (!computedM1.equals(M1Int)) {
+    if (!computedM1.equals(M1)) {
       throw new Error("Bad client credentials");
     }
 
-    const M2 = this.config.routines.computeServerEvidence(AInt, M1Int, S);
+    const M2 = this.config.routines.computeServerEvidence(A, M1, S);
 
     this.state = { step: "2" };
-    return bigIntegerToBase64(M2);
+    return M2;
   }
 }
 

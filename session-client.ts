@@ -2,7 +2,6 @@ import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
 import { SRPSession } from "./session";
-import { Base64String, base64ToBigInteger, bigIntegerToBase64 } from "./utils";
 
 export enum SRPClientSessionState {
   INIT = "INIT",
@@ -12,8 +11,8 @@ export enum SRPClientSessionState {
 }
 
 export interface ISRPClientCredentials {
-  A: Base64String;
-  M1: Base64String;
+  A: BigInteger;
+  M1: BigInteger;
 }
 
 export class SRPClientSession extends SRPSession {
@@ -67,7 +66,7 @@ export class SRPClientSession extends SRPSession {
     this._registerActivity();
   }
 
-  public step2(salt: Base64String, B: Base64String): ISRPClientCredentials {
+  public step2(salt: BigInteger, B: BigInteger): ISRPClientCredentials {
     this._expectState(SRPClientSessionState.STEP_1);
     this._throwOnTimeout();
 
@@ -75,36 +74,32 @@ export class SRPClientSession extends SRPSession {
       throw new Error("Salt (s) must not be null");
     }
 
-    const s = base64ToBigInteger(salt);
-
     if (!B) {
       throw new Error("Public server value (B) must not be null");
     }
 
-    const BInt = base64ToBigInteger(B);
-
     const routines = this.config.routines;
 
-    const x = routines.computeX(this.I, s, this.P);
+    const x = routines.computeX(this.I, salt, this.P);
     // Remove password from memory since we don"t need it anymore
     this._clearP();
     const a = routines.generatePrivateValue();
     this.A = routines.computeClientPublicValue(a);
     const k = routines.computeK();
-    const u = routines.computeU(this.A, BInt);
-    this.S = routines.computeClientSessionKey(k, x, u, a, BInt);
-    this.M1 = routines.computeClientEvidence(this.I, s, this.A, BInt, this.S);
+    const u = routines.computeU(this.A, B);
+    this.S = routines.computeClientSessionKey(k, x, u, a, B);
+    this.M1 = routines.computeClientEvidence(this.I, salt, this.A, B, this.S);
 
     this.stateStep = SRPClientSessionState.STEP_2;
     this._registerActivity();
 
     return {
-      A: bigIntegerToBase64(this.A),
-      M1: bigIntegerToBase64(this.M1),
+      A: this.A,
+      M1: this.M1,
     };
   }
 
-  public step3(M2: Base64String): void {
+  public step3(M2: BigInteger): void {
     this._expectState(SRPClientSessionState.STEP_2);
     this._throwOnTimeout();
 
@@ -112,14 +107,13 @@ export class SRPClientSession extends SRPSession {
       throw new Error("Server evidence (M2) must not be null");
     }
 
-    const M2Int = base64ToBigInteger(M2);
     const computedM2 = this.config.routines.computeServerEvidence(
       this.A,
       this.M1,
       this.S,
     );
 
-    if (!computedM2.equals(M2Int)) {
+    if (!computedM2.equals(M2)) {
       throw new Error("Bad server credentials");
     }
 

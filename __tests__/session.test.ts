@@ -9,13 +9,12 @@ import { SRPSession } from "../session";
 import { SRPClientSession } from "../session-client";
 import { SRPServerSession } from "../session-server";
 import {
-  bigIntegerToBase64,
   bigIntegerToWordArray,
   createVerifier,
   generateRandomBigInteger,
   generateRandomString,
   hash,
-  wordArrayTobase64,
+  wordArrayToBigInteger,
 } from "../utils";
 
 const TestConfig = new SRPConfig(
@@ -35,17 +34,20 @@ test('#SRPSession canary for password that is "uneven" as hex string', (t) => {
   const testPassword = "edge00044bc49a26"; // problematic as reported by https://midobugs.atlassian.net/browse/ISS-325
 
   // salt is generated during signup, and sent to client.step2
-  const salt = "Sxq7Zc++Cqb1DqUvTOmkxg==";
+  const salt = new BigInteger("99830900279124036031422484022515311814");
 
   // verifier is generated during signup, and read from storage to server.step1
   const verifier = createVerifier(TestConfig, testUsername, salt, testPassword);
-  t.strictEqual(
-    verifier,
-    "jXLJ8zZRisLNvmpvZXwKrQGxEG5B/0JbuMy/+3Mp26pgk1bvcbMhkqKCYFVV4FU35jdIsKKIMeAZUaLBrIDUx+uz3ND/" +
-      "lh6bOx3tOzJ2WJPqjh9jcSDVBRqyk8hTE/wYpZI6RIbuaHxYrjaFSc/jidYvg/fqHLLSLqrWdDRlthMly64Qu0Vada" +
-      "p0eDbN1qCYyi4TtejACzJdKcGvTGfnsetZOSRnFb52rG5DCnGPEySRDn6Lu7cUVVFNVL+TJEsH3iN9KnoLV6lHUM7+" +
-      "eWy3Qn1z0jfvkmmwR7de4ZZYk0r1sz04FoGk+wsJIoGakaHJR2mb5wnZYFEr57VkAXLA2g==",
+
+  const verifierExpected = new BigInteger(
+    "178562055003946915616288416183950560880175291647374906172196005828739793423130057138448557472796429057819212014" +
+      "4114935584475633589713081017567690708669637848379136792476825170841578549100791737447582125876753901554573933" +
+      "8667640603805500045440488046479293037121037880926546495644470644370531564026094560765922188514892916676817675" +
+      "1700937138435898497110083289317944474559572995934674830428142920649062311891412787734495424754159472009938334" +
+      "3222059032274510862728323448600730355383444838443223455907492540308650768601338619602737301031438936911752125" +
+      "3184029489262122079238259800200292396832028759867302637151706175160538",
   );
+  t.true(verifier.equals(verifierExpected));
 
   const serverSession = new SRPServerSession(TestConfig);
   // server gets identifier from client, salt+verifier from db (from signup)
@@ -140,10 +142,7 @@ test("error - not in step 1", (t) => {
   const serverSession = new SRPServerSession(TestConfig);
 
   t.throws(() => {
-    serverSession.step2(
-      bigIntegerToBase64(BigInteger.ONE),
-      bigIntegerToBase64(BigInteger.ONE),
-    );
+    serverSession.step2(BigInteger.ONE, BigInteger.ONE);
   }, /step2 not from step1/i);
 });
 
@@ -169,33 +168,32 @@ test('error - not in step "init"', (t) => {
 test("error - bad/empty A or M1", (t) => {
   t.plan(5);
 
-  const someBase64 = "YmFzZTY0";
+  const someBigInteger = generateRandomBigInteger();
 
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", someBase64, someBase64);
-    serverSession.step2("", bigIntegerToBase64(BigInteger.ONE));
+    serverSession.step1("pepi", someBigInteger, someBigInteger);
+    serverSession.step2(null!, BigInteger.ONE);
   }, /Client public value \(A\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", someBase64, someBase64);
-    serverSession.step2(null as any, bigIntegerToBase64(BigInteger.ONE));
+    serverSession.step1("pepi", someBigInteger, someBigInteger);
+    serverSession.step2(null as any, someBigInteger);
   }, /Client public value \(A\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", someBase64, someBase64);
-    serverSession.step2(someBase64, "");
+    serverSession.step1("pepi", someBigInteger, someBigInteger);
+    serverSession.step2(someBigInteger, null!);
   }, /Client evidence \(M1\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", someBase64, someBase64);
-    serverSession.step2(someBase64, null as any);
+    serverSession.step1("pepi", someBigInteger, someBigInteger);
+    serverSession.step2(someBigInteger, null as any);
   }, /Client evidence \(M1\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
-    serverSession.step1("pepi", someBase64, someBase64);
-    const badA = bigIntegerToBase64(BigInteger.ZERO);
-    serverSession.step2(badA, someBase64);
+    serverSession.step1("pepi", someBigInteger, someBigInteger);
+    serverSession.step2(BigInteger.ZERO, someBigInteger);
   }, /Invalid Client public value \(A\): /i);
 });
 
@@ -206,10 +204,11 @@ test("#SRPSessionGetters success (set values)", (t) => {
 
   t.doesNotThrow(() => session.S);
   t.equals(session.sharedKey, session.S);
-  t.equals(
-    session.hashedSharedKey,
-    wordArrayTobase64(
-      hash(session.config.parameters, bigIntegerToWordArray(session.S)),
+  t.true(
+    session.hashedSharedKey.equals(
+      wordArrayToBigInteger(
+        hash(session.config.parameters, bigIntegerToWordArray(session.S)),
+      ),
     ),
   );
   t.end();
