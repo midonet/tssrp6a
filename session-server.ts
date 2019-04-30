@@ -1,5 +1,6 @@
 import { BigInteger } from "jsbn";
-import { SRPConfig, SRPParameters } from ".";
+import { SRPConfig } from "./config";
+import { SRPParameters } from "./parameters";
 
 type SRPServerStateStep =
   | ISRPServerStateStepInit

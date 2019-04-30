@@ -1,7 +1,7 @@
-import { test } from "../../../test/util";
 import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
+import { test } from "../tests";
 import {
   createVerifier,
   evenLengthHex,

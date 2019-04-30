@@ -1,10 +1,10 @@
 /* eslint-disable no-fallthrough */
 import { BigInteger } from "jsbn";
-import { test } from "../../../test/util";
 import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPClientSession, SRPClientSessionState } from "../session-client";
+import { test } from "../tests";
 import { generateRandomBigInteger, generateRandomString } from "../utils";
 
 const TestConfig = new SRPConfig(

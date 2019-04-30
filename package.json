@@ -1,5 +1,5 @@
 {
-  "name": "midokura-srp6a",
+  "name": "tssrp6a",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,16 +11,20 @@
   "devDependencies": {
     "@types/crypto-js": "^3.1.43",
     "@types/jsbn": "^1.2.29",
+    "@types/node": "^11.13.8",
     "husky": "^2.1.0",
     "lint-staged": "^8.1.5",
     "nyc": "^14.0.0",
     "prettier": "^1.17.0",
+    "tap-diff": "^0.1.1",
     "tape": "^4.10.1",
+    "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap"
+    "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"]}' yarn tape __tests__/* -r ts-node/register"
   },
   "husky": {
     "hooks": {

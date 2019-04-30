@@ -1,13 +1,12 @@
 /* eslint-disable no-fallthrough */
 import { BigInteger } from "jsbn";
-import { range } from "ramda";
-import { test } from "../../../test/util";
 import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPSession } from "../session";
 import { SRPClientSession } from "../session-client";
 import { SRPServerSession } from "../session-server";
+import { test } from "../tests";
 import {
   bigIntegerToWordArray,
   createVerifier,
@@ -81,7 +80,7 @@ test('#SRPSession canary for password that is "uneven" as hex string', (t) => {
 test("#SRPSession success", (t) => {
   const TEST_COUNT = 20;
   t.plan(TEST_COUNT);
-  range(0, TEST_COUNT).forEach((i) => {
+  Array.from(Array(TEST_COUNT).keys()).forEach((i) => {
     const testUsername = generateRandomString(10);
     const testPassword = generateRandomString(15);
 
