@@ -11,10 +11,30 @@
   "devDependencies": {
     "@types/crypto-js": "^3.1.43",
     "@types/jsbn": "^1.2.29",
+    "husky": "^2.1.0",
+    "lint-staged": "^8.1.5",
+    "nyc": "^14.0.0",
+    "prettier": "^1.17.0",
+    "tape": "^4.10.1",
+    "tslint": "^5.16.0",
     "typescript": "^3.4.5"
   },
   "scripts": {
     "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint-staged"
+    }
+  },
+  "lint-staged": {
+    "linters": {
+      "*.{ts,tsx}": [
+        "yarn prettier --write",
+        "yarn tslint -c tslint.json --fix",
+        "git add"
+      ]
+    }
   },
   "description": "SRP6a client and server lib",
   "repository": "git@github.com:midokura/platform-frontend.git",
