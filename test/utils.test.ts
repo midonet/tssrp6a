@@ -1,12 +1,12 @@
 import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
-import { test } from "../tests";
 import {
   createVerifier,
   evenLengthHex,
   generateRandomBigInteger,
 } from "../utils";
+import { test } from "./tests";
 test("#evenLengthHex", (t) => {
   t.strictEqual("aa11", evenLengthHex("aa11"));
   t.strictEqual("0baa11", evenLengthHex("baa11"));

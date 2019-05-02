@@ -1,5 +1,5 @@
 import { SRPParameters } from "../parameters";
-import { test } from "../tests";
+import { test } from "./tests";
 
 test("existing hash", (t) => {
   t.doesNotThrow(() => new SRPParameters());

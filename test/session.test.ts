@@ -6,7 +6,6 @@ import { SRPRoutines } from "../routines";
 import { SRPSession } from "../session";
 import { SRPClientSession } from "../session-client";
 import { SRPServerSession } from "../session-server";
-import { test } from "../tests";
 import {
   bigIntegerToWordArray,
   createVerifier,
@@ -15,6 +14,7 @@ import {
   hash,
   wordArrayToBigInteger,
 } from "../utils";
+import { test } from "./tests";
 
 const TestConfig = new SRPConfig(
   new SRPParameters(),

@@ -4,8 +4,8 @@ import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPClientSession, SRPClientSessionState } from "../session-client";
-import { test } from "../tests";
 import { generateRandomBigInteger, generateRandomString } from "../utils";
+import { test } from "./tests";
 
 const TestConfig = new SRPConfig(
   new SRPParameters(),

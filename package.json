@@ -17,6 +17,7 @@
     "nyc": "^14.0.0",
     "prettier": "^1.17.0",
     "tap-diff": "^0.1.1",
+    "tap-junit": "^3.1.0",
     "tape": "^4.10.1",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
@@ -24,7 +25,11 @@
   },
   "scripts": {
     "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"]}' yarn tape __tests__/* -r ts-node/register"
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"]}' yarn tape 'test/**/*.test.*' -r ts-node/register",
+    "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
+    "nyc": "nyc -e .ts",
+    "coverage": "yarn nyc yarn test:report",
+    "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report"
   },
   "husky": {
     "hooks": {
