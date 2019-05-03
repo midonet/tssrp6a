@@ -1,7 +1,8 @@
 {
   "name": "tssrp6a",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "main": "dist/index.js",
+  "files": ["dist/**/*"],
   "types": "dist/index.d.ts",
   "private": false,
   "dependencies": {
@@ -24,7 +25,7 @@
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap",
+    "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap --declaration",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"]}' yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts",
@@ -48,5 +49,7 @@
   "description": "SRP6a client and server lib",
   "repository": "git@github.com:midokura/platform-frontend.git",
   "author": "Midokura",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "keywords": ["srp", "srp6a", "authentication"],
+  "homepage": "https://github.com/midonet/tssrp6a"
 }
