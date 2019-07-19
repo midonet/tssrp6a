@@ -3,8 +3,6 @@ import { BigInteger } from "jsbn";
 
 import { hashBitCount } from "./utils";
 
-export type PrimeNumber = BigInteger | string;
-
 type HashingAlgorithm = keyof typeof SRPParameters.H;
 
 // tslint:disable:variable-name
@@ -37,13 +35,13 @@ export class SRPParameters {
   private _HBits: number;
 
   constructor(
-    N: PrimeNumber = SRPParameters.N[2048],
-    g: PrimeNumber = SRPParameters.g,
+    N: BigInteger = SRPParameters.N[2048],
+    g: BigInteger = SRPParameters.g,
     H: HashingAlgorithm = SRPParameters.H.SHA512,
   ) {
-    this._N = this._ensureBigInteger(N);
+    this._N = N;
     this._NBits = this._N.bitLength();
-    this._g = this._ensureBigInteger(g);
+    this._g = g;
 
     const hasher = CryptoJS.algo[H];
 
@@ -74,10 +72,6 @@ export class SRPParameters {
 
   get HBits(): number {
     return this._HBits;
-  }
-
-  private _ensureBigInteger(n: PrimeNumber): BigInteger {
-    return typeof n === "string" ? new BigInteger(n) : n;
   }
 }
 
