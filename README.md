@@ -36,7 +36,12 @@ See [session test](test/session.test.ts) for actual usage of a complete authenti
 
 This package's client and server hashing algorithms of course match, and matches Java's [Nimbus SRP](https://connect2id.com/products/nimbus-srp).
 
-These settings can be overriden, client and server receive a `SRPConfig` instance that holds parameters for `N` and `g`, and also an instance of `SRPRoutines`. A subclass of routines can be used that uses different hashing and computation algorithms, to adapt to any other server implementation.
+These settings can be overriden, client and server receive a `SRPConfig` instance
+that holds parameters for `N` and `g`, and also an instance of `SRPRoutines`.
+A subclass of routines can be used that uses different hashing and computation
+algorithms, to adapt to any other server implementation.
+[This example](test/srp6a.test.ts) shows how to override computeX() routine
+of the client.
 
 ## Recomendations
 
