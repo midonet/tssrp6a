@@ -6,6 +6,7 @@ import {
   generateRandomBigInteger,
   hash,
   hashPadded,
+  LibWordArray,
   stringToWordArray,
   wordArrayToBigInteger,
 } from "./utils";
@@ -33,11 +34,11 @@ export class SRPRoutines {
     return this._parameters;
   }
 
-  public hash(...as: CryptoJS.WordArray[]): CryptoJS.WordArray {
+  public hash(...as: LibWordArray[]): LibWordArray {
     return hash(this.parameters, ...as);
   }
 
-  public hashPadded(...as: CryptoJS.WordArray[]): CryptoJS.WordArray {
+  public hashPadded(...as: LibWordArray[]): LibWordArray {
     const targetLength = Math.trunc((this.parameters.NBits + 7) / 8);
     return hashPadded(this.parameters, targetLength, ...as);
   }

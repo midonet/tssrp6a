@@ -6,10 +6,12 @@ import { SRPParameters } from "./parameters";
 
 const identity = <T>(a: T) => a;
 
-export const bigIntegerToWordArray = (n: BigInteger): CryptoJS.WordArray =>
+export type LibWordArray = CryptoJS.LibWordArray;
+
+export const bigIntegerToWordArray = (n: BigInteger): LibWordArray =>
   CryptoJS.enc.Hex.parse(evenLengthHex(n.toString(16)));
 
-export const wordArrayToBigInteger = (words: CryptoJS.WordArray): BigInteger =>
+export const wordArrayToBigInteger = (words: LibWordArray): BigInteger =>
   new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
 
 export function evenLengthHex(hex: string): string {
@@ -21,10 +23,10 @@ export function evenLengthHex(hex: string): string {
 }
 
 /**
- * Convert some string into CryptoJS.WordArray, suitable for hashing.
+ * Convert some string into LibWordArray, suitable for hashing.
  * @param str Any string, like a username, email, or password
  */
-export function stringToWordArray(str: string): CryptoJS.WordArray {
+export function stringToWordArray(str: string): LibWordArray {
   const bytes = new Uint8Array(str.length);
   for (let i = 0; i < str.length; ++i) {
     bytes[i] = str.charCodeAt(i);
@@ -40,8 +42,8 @@ export function stringToWordArray(str: string): CryptoJS.WordArray {
 }
 
 const padWordArray = (targetLength: number) => (
-  words: CryptoJS.WordArray,
-): CryptoJS.WordArray => {
+  words: LibWordArray,
+): LibWordArray => {
   const hexString = CryptoJS.enc.Hex.stringify(words);
   const currentByteLength = hexString.length / 2;
   const byteLengthDiff = targetLength - currentByteLength;
@@ -55,26 +57,26 @@ const padWordArray = (targetLength: number) => (
 
 export function hash(
   parameters: SRPParameters,
-  ...as: CryptoJS.WordArray[]
-): CryptoJS.WordArray {
+  ...as: LibWordArray[]
+): LibWordArray {
   return hashPadded(parameters, null, ...as);
 }
 
 export function hashPadded(
   parameters: SRPParameters,
   targetLen: number | null,
-  ...as: CryptoJS.WordArray[]
-): CryptoJS.WordArray {
+  ...as: LibWordArray[]
+): LibWordArray {
   parameters.H.reset();
 
   as.map(targetLen !== null ? padWordArray(targetLen) : identity).forEach(
-    (wa: CryptoJS.WordArray) => parameters.H.update(wa),
+    (wa: LibWordArray) => parameters.H.update(wa),
   );
 
   return parameters.H.finalize();
 }
 
-const generateRandom = (numBytes: number = 16): CryptoJS.WordArray => {
+const generateRandom = (numBytes: number = 16): LibWordArray => {
   return CryptoJS.lib.WordArray.random(numBytes) as any;
 };
 
