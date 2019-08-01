@@ -1,28 +1,21 @@
 /* eslint-disable no-fallthrough */
-import { BigInteger } from "jsbn";
 import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPClientSession } from "../session-client";
 import { SRPServerSession } from "../session-server";
 import {
-  bigIntegerToWordArray,
   createVerifierAndSalt,
   generateRandomString,
+  HashWordArray,
   stringToWordArray,
-  wordArrayToBigInteger,
 } from "../utils";
 import { test } from "./tests";
 
 const testParameters = new SRPParameters();
 class SRP6aRoutines extends SRPRoutines {
-  public computeX(_I: string, s: BigInteger, P: string): BigInteger {
-    return wordArrayToBigInteger(
-      this.hash(
-        bigIntegerToWordArray(s),
-        this.hash(stringToWordArray(`${_I}:${P}`)),
-      ),
-    );
+  public computeIdentityHash(I: string, P: string): HashWordArray {
+    return this.hash(stringToWordArray(`${I}:${P}`));
   }
 }
 const srp6aConfig = new SRPConfig(testParameters, (p) => new SRP6aRoutines(p));
