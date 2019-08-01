@@ -1,5 +1,6 @@
 import { BigInteger } from "jsbn";
 
+import { enc as CryptoJsEnc } from "crypto-js";
 import { SRPParameters } from "./parameters";
 import {
   bigIntegerToWordArray,
@@ -63,10 +64,14 @@ export class SRPRoutines {
     return generateRandomBigInteger(saltBytes);
   }
 
-  public computeX(_I: string, s: BigInteger, P: string): BigInteger {
+  public computeX(I: string, s: BigInteger, P: string): BigInteger {
     return wordArrayToBigInteger(
-      this.hash(bigIntegerToWordArray(s), this.hash(stringToWordArray(P))),
+      this.hash(bigIntegerToWordArray(s), this.computeIdentityHash(I, P)),
     );
+  }
+
+  public computeIdentityHash(_: string, P: string): LibWordArray {
+    return this.hash(CryptoJsEnc.Utf8.parse(P));
   }
 
   public computeVerifier(x: BigInteger): BigInteger {
