@@ -6,6 +6,7 @@
     "ordered-imports": true,
     "object-literal-sort-keys": false,
     "max-classes-per-file": false,
+    "no-bitwise": false,
     "object-literal-key-quotes": false,
     "trailing-comma": [true, { "esSpecCompliant": true }]
   },
