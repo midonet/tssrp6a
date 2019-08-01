@@ -14,7 +14,7 @@ export const bigIntegerToWordArray = (n: BigInteger): HashWordArray =>
 export const wordArrayToBigInteger = (words: HashWordArray): BigInteger =>
   new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
 
-export function evenLengthHex(hex: string): string {
+function evenLengthHex(hex: string): string {
   if (hex.length % 2 === 1) {
     return `0${hex}`;
   } else {
@@ -23,22 +23,11 @@ export function evenLengthHex(hex: string): string {
 }
 
 /**
- * Convert some string into LibWordArray, suitable for hashing.
- * @param str Any string, like a username, email, or password
+ * Convert some string into HashWordArray.
+ * @param str Any UTF8 string, like a username, email, or password
  */
 export function stringToWordArray(str: string): HashWordArray {
-  const bytes = new Uint8Array(str.length);
-  for (let i = 0; i < str.length; ++i) {
-    bytes[i] = str.charCodeAt(i);
-  }
-
-  const hexString = Array.from(bytes)
-    .map((b) => {
-      return evenLengthHex(b.toString(16));
-    })
-    .join("");
-
-  return CryptoJS.enc.Hex.parse(hexString);
+  return CryptoJS.enc.Utf8.parse(str);
 }
 
 const padWordArray = (targetLength: number) => (

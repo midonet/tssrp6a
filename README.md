@@ -40,7 +40,7 @@ These settings can be overriden, client and server receive a `SRPConfig` instanc
 that holds parameters for `N` and `g`, and also an instance of `SRPRoutines`.
 A subclass of routines can be used that uses different hashing and computation
 algorithms, to adapt to any other server implementation.
-[This example](test/srp6a.test.ts) shows how to override computeX() routine
+[This example](test/srp6a.test.ts) shows how to override computeIdentityHash() routine
 of the client.
 
 ## Recomendations
