@@ -121,6 +121,4 @@ export function createVerifierAndSalt(
 }
 
 export const hashBitCount = (parameters: SRPParameters): number =>
-  wordArrayToBigInteger(
-    hash(parameters, bigIntegerToWordArray(BigInteger.ONE)),
-  ).bitCount();
+  hash(parameters, bigIntegerToWordArray(BigInteger.ONE)).sigBytes << 3;
