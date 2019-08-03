@@ -4,8 +4,10 @@ import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import {
   bigIntegerToWordArray,
+  createHashWordArray,
   createVerifier,
   generateRandomBigInteger,
+  padWordArray,
   stringToWordArray,
   wordArrayToBigInteger,
 } from "../utils";
@@ -127,4 +129,40 @@ test("#bigIntegerToWordArray 5 bytes number, big byte", (t) => {
     "First word is correct",
   );
   t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
+});
+
+test("#paddArray", (t) => {
+  t.plan(6);
+  const words: number[] = [1, 2, 3];
+  const testHashArray = createHashWordArray(words, 12);
+  t.equals(
+    words,
+    padWordArray(10)(testHashArray).words,
+    "Same array for small target size",
+  );
+  t.equals(
+    words,
+    padWordArray(12)(testHashArray).words,
+    "Same array for small target size",
+  );
+
+  const paddedLibArray = padWordArray(16)(testHashArray);
+  t.equals(4, paddedLibArray.words.length);
+  t.deepEqual([0, 1, 2, 3], paddedLibArray.words);
+
+  const paddedLibArray2 = padWordArray(15)(testHashArray);
+  t.equals(15, paddedLibArray2.sigBytes, "Array length is correct");
+  t.deepEqual([0, 1 << 8, 2 << 8, 3 << 8], paddedLibArray2.words);
+});
+
+test("#paddArray 1 byte", (t) => {
+  t.plan(3);
+  const testHashArray = bigIntegerToWordArray(BigInteger.ONE);
+  t.equal(1, testHashArray.sigBytes);
+
+  const paddedLibArray = padWordArray(256)(testHashArray);
+  t.equals(256, paddedLibArray.sigBytes);
+  const expectedArray = new Array(64).fill(0);
+  expectedArray[63] = 1;
+  t.deepEqual(expectedArray, paddedLibArray.words);
 });

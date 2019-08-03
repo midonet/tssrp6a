@@ -30,18 +30,28 @@ export function stringToWordArray(str: string): HashWordArray {
   return CryptoJS.enc.Utf8.parse(str);
 }
 
-const padWordArray = (targetLength: number) => (
+/**
+ * Left pad HashWordArray with zeroes.
+ * @param targetLength Length of the target array in bytes.
+ * @returns Padded array or original array if targetLength is less than original
+ *          array length.
+ */
+export const padWordArray = (targetLength: number) => (
   words: HashWordArray,
 ): HashWordArray => {
-  const hexString = CryptoJS.enc.Hex.stringify(words);
-  const currentByteLength = hexString.length / 2;
-  const byteLengthDiff = targetLength - currentByteLength;
-
-  return CryptoJS.enc.Hex.parse(
-    byteLengthDiff > 0
-      ? "00".repeat(byteLengthDiff) + hexString
-      : hexString.substring(-byteLengthDiff),
-  );
+  let result: HashWordArray = words;
+  if (targetLength > words.sigBytes) {
+    const resultWords: number[] = new Array(ceilDiv4(targetLength)).fill(0);
+    result = createHashWordArray(resultWords, targetLength);
+    for (
+      let dest = targetLength - words.sigBytes, src = 0;
+      src < words.sigBytes;
+      ++src, ++dest
+    ) {
+      setByte(result, dest, getByte(words, src));
+    }
+  }
+  return result;
 };
 
 export function hash(
@@ -122,3 +132,32 @@ export function createVerifierAndSalt(
 
 export const hashBitCount = (parameters: SRPParameters): number =>
   hash(parameters, bigIntegerToWordArray(BigInteger.ONE)).sigBytes << 3;
+
+export function createHashWordArray(
+  words: number[],
+  sigBytes: number,
+): HashWordArray {
+  const result: HashWordArray = CryptoJS.lib.WordArray.create(words);
+  result.sigBytes = sigBytes;
+  return result;
+}
+
+function ceilDiv4(x: number) {
+  return (x + 3) >>> 2;
+}
+
+/**
+ * Return the number of bits the byte should be shifted to occupy given position in 4 bytes integer.
+ * @param byteNum The number of byte in big endian order. Can be only 0, 1, 2 or 3
+ */
+function byteShift(byteNum: number): number {
+  return (3 - byteNum) << 3;
+}
+
+function getByte(array: HashWordArray, idx: number): number {
+  return (array.words[idx >>> 2] >>> byteShift(idx & 3)) & 0xff;
+}
+
+function setByte(array: HashWordArray, idx: number, byteValue: number): void {
+  array.words[idx >>> 2] |= (byteValue & 0xff) << byteShift(idx & 3);
+}
