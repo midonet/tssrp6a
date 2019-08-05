@@ -34,9 +34,14 @@ Note: `a` and `b` are generated for one authentication "session" and discarded i
 
 See [session test](test/session.test.ts) for actual usage of a complete authentication flow between client and server.
 
-This package's client and server hashing algorithms of course match, and matches Java's [Nimbus SRP](https://connect2id.com/products/nimbus-srp). The identity is NOT included in the hash, so the server could allow changing it.
+This package's client and server hashing algorithms of course match, and matches Java's [Nimbus SRP](https://connect2id.com/products/nimbus-srp).
 
-These settings can be overriden, client and server receive a `SRPConfig` instance that holds parameters for `N` and `g`, and also an instance of `SRPRoutines`. A subclass of routines can be used that uses different hashing and computation algorithms, to adapt to any other server implementation.
+These settings can be overriden, client and server receive a `SRPConfig` instance
+that holds parameters for `N` and `g`, and also an instance of `SRPRoutines`.
+A subclass of routines can be used that uses different hashing and computation
+algorithms, to adapt to any other server implementation.
+[This example](test/srp6a.test.ts) shows how to override computeX() routine
+of the client.
 
 ## Recomendations
 
@@ -45,3 +50,13 @@ SRP alone only prevents a man-in-the-middle attack from _reading_ the password, 
 Always use SRP in combination with HTTPS. Browsers can be vulnerable to: having malicious certificates installed beforehand, rogue certificates in the wild, server misconfiguration, bugs like the heartbleed attack, servers leaking password into errors and logs. SRP in the browser offers an additional hurdle and may prevent some mistakes from escalating.
 
 The client can chose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
+
+## Notes
+ Please **NOTE** that default routines does not
+strictly follow SRP6a RFC because user identity is NOT included in the verifier generation.
+This makes possible for malicious server to detect if
+[two users share the same password](https://crypto.stackexchange.com/questions/8626/why-is-tls-srp-verifier-based-on-user-name/9430#9430)
+but also allows client to change it "identity" without regenerating password.
+
+[This example](test/srp6a.test.ts) shows how to make implementation strictly compliant with
+SRP6a specification.
