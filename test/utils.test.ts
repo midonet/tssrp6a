@@ -55,3 +55,76 @@ test("#createVerifierHexSalt errors", (t) => {
   t.throws(() => createVerifier(config, "identifier", salt, ""));
   t.end();
 });
+
+test("#bigIntegerToWordArray", (t) => {
+  t.plan(7);
+  const bigOne = BigInteger.ONE;
+  let wordArray = bigIntegerToWordArray(bigOne);
+  t.equals(1, wordArray.sigBytes);
+  t.equals(1 << 24, wordArray.words[0], "One");
+
+  const bigZero = BigInteger.ZERO;
+  wordArray = bigIntegerToWordArray(bigZero);
+  t.equals(1, wordArray.sigBytes);
+  t.equals(0, wordArray.words[0], "Zero");
+
+  t.deepEqual(
+    { words: [0xff << 24], sigBytes: 1 },
+    bigIntegerToWordArray(bigOne.negate()),
+    "Negative values are partially supported",
+  );
+
+  const testNumber = new BigInteger("0102", 16);
+  wordArray = bigIntegerToWordArray(testNumber);
+  t.equals(2, wordArray.sigBytes, "Two bytes in 0x0102");
+  t.equals(0x0102 << 16, wordArray.words[0]);
+});
+
+test("#bigIntegerToWordArray 5 bytes number", (t) => {
+  t.plan(5);
+  const numberHexStr = "7fff7effee";
+  const testNumber = new BigInteger(numberHexStr, 16);
+  t.equals(1, testNumber.signum(), "The number is positive");
+  t.equals(
+    numberHexStr,
+    testNumber.toString(16),
+    "toString() returns the same string",
+  );
+  const wordArray = bigIntegerToWordArray(testNumber);
+  t.equals(5, wordArray.sigBytes, `Five bytes in 0x${numberHexStr}`);
+  t.equals(0x7fff7eff, wordArray.words[0], "First word is correct");
+  t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
+});
+
+test("#bigIntegerToWordArray 1 byte number", (t) => {
+  t.plan(2);
+  const numberHexStr = "ff";
+  const testNumber = new BigInteger(numberHexStr, 16);
+  const wordArray = bigIntegerToWordArray(testNumber);
+  t.equals(1, wordArray.sigBytes, `One byte in 0x${numberHexStr}`);
+  t.equals(
+    testNumber.intValue() << 24,
+    wordArray.words[0],
+    "First word is correct",
+  );
+});
+
+test("#bigIntegerToWordArray 5 bytes number, big byte", (t) => {
+  t.plan(5);
+  const numberHexStr = "ffffffffee";
+  const testNumber = new BigInteger(numberHexStr, 16);
+  t.equals(1, testNumber.signum(), "The number is positive");
+  t.equals(
+    numberHexStr,
+    testNumber.toString(16),
+    "toString() returns the same string",
+  );
+  const wordArray = bigIntegerToWordArray(testNumber);
+  t.equals(5, wordArray.sigBytes, `Five bytes in 0x${numberHexStr}`);
+  t.equals(
+    new BigInteger("ffffffff", 16).intValue(),
+    wordArray.words[0],
+    "First word is correct",
+  );
+  t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
+});
