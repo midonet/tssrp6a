@@ -78,7 +78,7 @@ test('#SRPSession canary for password that is "uneven" as hex string', (t) => {
  * Step 3:
  * * Client validates server using 'M2'
  */
-test("#SRPSession success", (t) => {
+test("#SRP6a_Nimbusds_Session success", (t) => {
   const TEST_COUNT = 20;
   t.plan(TEST_COUNT);
   Array.from(Array(TEST_COUNT).keys()).forEach((i) => {
@@ -93,16 +93,16 @@ test("#SRPSession success", (t) => {
       testPassword,
     );
 
-    const serverSession = new SRPServerSession(TestConfig);
+    const server = new SRPServerSession(TestConfig);
     // server gets identifier from client, salt+verifier from db (from signup)
-    const B = serverSession.step1(testUsername, salt, verifier);
+    const B = server.step1(testUsername, salt, verifier);
 
-    const clientSession = new SRPClientSession(TestConfig);
-    clientSession.step1(testUsername, testPassword);
-    const { A, M1 } = clientSession.step2(salt, B);
+    const srp6aNimbusdsClient = new SRPClientSession(TestConfig);
+    srp6aNimbusdsClient.step1(testUsername, testPassword);
+    const { A, M1 } = srp6aNimbusdsClient.step2(salt, B);
 
-    const M2 = serverSession.step2(A, M1);
-    clientSession.step3(M2);
+    const M2 = server.step2(A, M1);
+    srp6aNimbusdsClient.step3(M2);
     t.pass(
       `Random test #${i} user:${testUsername}, password:${testPassword}, salt: ${salt}`,
     );
