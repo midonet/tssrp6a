@@ -2,6 +2,7 @@ import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
 import { SRPSession } from "./session";
+import { HashWordArray } from "./utils";
 
 export enum SRPClientSessionState {
   INIT = "INIT",
@@ -22,14 +23,14 @@ export class SRPClientSession extends SRPSession {
   protected stateStep: SRPClientSessionState;
 
   /**
-   * User identity "I"
+   * User identity
    */
   private _I?: string;
 
   /**
-   * User password "P"
+   * User identity hash
    */
-  private _P?: string;
+  private _IH?: HashWordArray;
 
   /**
    * Client public value "A"
@@ -53,15 +54,15 @@ export class SRPClientSession extends SRPSession {
     if (!userId || !userId.trim()) {
       throw new Error("User identity must not be null nor empty");
     }
-
-    this.I = userId;
-
     if (!userPassword) {
       throw new Error("User password must not be null");
     }
 
-    this.P = userPassword;
-
+    this.I = userId;
+    this.identityHash = this.config.routines.computeIdentityHash(
+      userId,
+      userPassword,
+    );
     this.stateStep = SRPClientSessionState.STEP_1;
     this._registerActivity();
   }
@@ -80,9 +81,7 @@ export class SRPClientSession extends SRPSession {
 
     const routines = this.config.routines;
 
-    const x = routines.computeX(this.I, salt, this.P);
-    // Remove password from memory since we don"t need it anymore
-    this._clearP();
+    const x = routines.computeXStep2(salt, this.identityHash);
     const a = routines.generatePrivateValue();
     this.A = routines.computeClientPublicValue(a);
     const k = routines.computeK();
@@ -141,24 +140,27 @@ export class SRPClientSession extends SRPSession {
     this._I = I;
   }
 
-  get P(): string {
-    if (this._P) {
-      return this._P;
+  get identityHash(): HashWordArray {
+    if (this._IH) {
+      return this._IH;
     }
 
-    throw new Error("User password (P) not set");
+    throw new Error("Identity hash is not set");
   }
 
-  set P(P: string) {
-    if (this._P) {
-      throw new Error(`User password (P) already set: ${this._P}`);
+  set identityHash(identityHash: HashWordArray) {
+    if (identityHash.sigBytes << 3 !== this.config.parameters.HBits) {
+      throw new Error(
+        `Hash array must have correct size in bits: ${
+          this.config.parameters.HBits
+        }`,
+      );
+    }
+    if (this._IH) {
+      throw new Error(`User identity hash (_IH) already set: ${this._IH}`);
     }
 
-    this._P = P;
-  }
-
-  private _clearP(): void {
-    this._P = undefined;
+    this._IH = identityHash;
   }
 
   get A(): BigInteger {

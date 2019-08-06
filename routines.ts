@@ -69,6 +69,12 @@ export class SRPRoutines {
     );
   }
 
+  public computeXStep2(s: BigInteger, identityHash: HashWordArray): BigInteger {
+    return wordArrayToBigInteger(
+      this.hash(bigIntegerToWordArray(s), identityHash),
+    );
+  }
+
   public computeIdentityHash(_: string, P: string): HashWordArray {
     return this.hash(stringToWordArray(P));
   }
