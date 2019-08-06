@@ -14,14 +14,6 @@ export const bigIntegerToWordArray = (n: BigInteger): HashWordArray =>
 export const wordArrayToBigInteger = (words: HashWordArray): BigInteger =>
   new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
 
-function evenLengthHex(hex: string): string {
-  if (hex.length % 2 === 1) {
-    return `0${hex}`;
-  } else {
-    return hex;
-  }
-}
-
 /**
  * Convert some string into HashWordArray.
  * @param str Any UTF8 string, like a username, email, or password
@@ -74,10 +66,6 @@ export function hashPadded(
 
   return parameters.H.finalize();
 }
-
-const generateRandom = (numBytes: number = 16): HashWordArray => {
-  return CryptoJS.lib.WordArray.random(numBytes) as any;
-};
 
 export const generateRandomString = (characterCount: number = 10): string =>
   CryptoJS.enc.Hex.stringify(generateRandom(characterCount / 2));
@@ -142,6 +130,14 @@ export function createHashWordArray(
   return result;
 }
 
+function evenLengthHex(hex: string): string {
+  if (hex.length % 2 === 1) {
+    return `0${hex}`;
+  } else {
+    return hex;
+  }
+}
+
 function ceilDiv4(x: number) {
   return (x + 3) >>> 2;
 }
@@ -161,3 +157,8 @@ function getByte(array: HashWordArray, idx: number): number {
 function setByte(array: HashWordArray, idx: number, byteValue: number): void {
   array.words[idx >>> 2] |= (byteValue & 0xff) << byteShift(idx & 3);
 }
+
+const generateRandom = (numBytes: number = 16): HashWordArray => {
+  // TODO: fix type of this function in @types/crypto-js
+  return (CryptoJS.lib.WordArray.random(numBytes) as any) as HashWordArray;
+};
