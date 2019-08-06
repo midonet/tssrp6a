@@ -4,7 +4,11 @@ import { SRPConfig } from "../config";
 import { SRPParameters } from "../parameters";
 import { SRPRoutines } from "../routines";
 import { SRPClientSession, SRPClientSessionState } from "../session-client";
-import { generateRandomBigInteger, generateRandomString } from "../utils";
+import {
+  createHashWordArray,
+  generateRandomBigInteger,
+  generateRandomString,
+} from "../utils";
 import { test } from "./tests";
 
 const TestConfig = new SRPConfig(
@@ -34,8 +38,13 @@ class TestSRPClientSession extends SRPClientSession {
 
   public assumeStep1(): void {
     this._registerActivity();
-    this.I = generateRandomString(16);
-    this.P = generateRandomString(16);
+    const userId = generateRandomString(16);
+    const userPassword = generateRandomString(16);
+    this.I = userId;
+    this.identityHash = this.config.routines.computeIdentityHash(
+      userId,
+      userPassword,
+    );
   }
 
   public assumeStep2(): void {
@@ -47,20 +56,19 @@ class TestSRPClientSession extends SRPClientSession {
 }
 
 test("#SRPGetters success (set values)", (t) => {
+  t.plan(4);
   const session = new TestSRPClientSession(SRPClientSessionState.STEP_3);
-
-  t.doesNotThrow(() => session.I);
-  t.doesNotThrow(() => session.P);
-  t.doesNotThrow(() => session.A);
-  t.doesNotThrow(() => session.M1);
-  t.end();
+  t.ok(session.I, "I does not throw");
+  t.ok(session.identityHash, "identityHash does not throw");
+  t.ok(session.A, "A does not throw");
+  t.ok(session.M1, "M1 does not throw");
 });
 
 test("#SRPGetters failure (not-set values)", (t) => {
   const session = new TestSRPClientSession();
 
   t.throws(() => session.I, /user identity.*not set/i);
-  t.throws(() => session.P, /password.*not set/i);
+  t.throws(() => session.identityHash, /Identity hash.*not set/i);
   t.throws(() => session.A, /public client value.*not set/i);
   t.throws(() => session.M1, /client evidence.*not set/i);
   t.end();
@@ -75,10 +83,7 @@ test("#SRPSetters success (not set yet)", (t) => {
   const M1 = generateRandomBigInteger();
 
   t.doesNotThrow(() => {
-    session.I = I;
-  });
-  t.doesNotThrow(() => {
-    session.P = P;
+    session.identityHash = session.config.routines.computeIdentityHash(I, P);
   });
   t.doesNotThrow(() => {
     session.A = A;
@@ -94,15 +99,17 @@ test("#SRPSetters failure (already set)", (t) => {
 
   const I = generateRandomString(16);
   const P = generateRandomString(16);
+  const IH = session.config.routines.computeIdentityHash(I, P);
   const A = generateRandomBigInteger();
   const M1 = generateRandomBigInteger();
 
   t.throws(() => {
     session.I = I;
   }, /identity.*already set/i);
+
   t.throws(() => {
-    session.P = P;
-  }, /password.*already set/i);
+    session.identityHash = IH;
+  }, /identity hash.*already set/i);
   t.throws(() => {
     session.A = A;
   }, /public client val.*already set/i);
@@ -117,6 +124,10 @@ test("#SRPSetter failure (invalid)", (t) => {
   t.throws(() => {
     session.A = BigInteger.ZERO;
   }, /bad client public/i);
+
+  t.throws(() => {
+    session.identityHash = createHashWordArray([1, 2, 3], 12);
+  }, /Hash array must have correct size in bits/i);
   t.end();
 });
 
@@ -332,22 +343,4 @@ test("#Timeout Step 3", (t) => {
   doAfterTimeout(() => session.step3(generateRandomBigInteger())).catch((e) => {
     t.true(/timeout/i.test(e.message));
   });
-});
-
-test("#Timeout password clear after step 2", (t) => {
-  const session = new TestSRPClientSession();
-
-  const I = generateRandomString(16);
-  const P = generateRandomString(16);
-  const s = generateRandomBigInteger(16);
-  const B = generateRandomBigInteger(16);
-
-  session.step1(I, P);
-
-  t.equal(session.P, P);
-
-  session.step2(s, B);
-
-  t.throws(() => session.P, /not set/i);
-  t.end();
 });
