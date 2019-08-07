@@ -67,8 +67,25 @@ export function hashPadded(
   return parameters.H.finalize();
 }
 
-export const generateRandomString = (characterCount: number = 10): string =>
-  CryptoJS.enc.Hex.stringify(generateRandom(characterCount / 2));
+/**
+ * Generates random string of ASCII characters using crypto secure random generator.
+ * @param characterCount The length of the result string.
+ * @return The string.
+ */
+export function generateRandomString(characterCount: number = 10): string {
+  const randomArray = generateRandom(characterCount);
+  for (let i = 0; i < randomArray.sigBytes; ++i) {
+    let asciiChar = getByte(randomArray, i) & 0x7f;
+    if (asciiChar < 32) {
+      asciiChar |= 32;
+    }
+    if (asciiChar === 0x7f) {
+      asciiChar = 0x7e;
+    }
+    setByte(randomArray, i, asciiChar);
+  }
+  return CryptoJS.enc.Utf8.stringify(randomArray);
+}
 
 export function generateRandomBigInteger(numBytes: number = 16): BigInteger {
   return wordArrayToBigInteger(generateRandom(numBytes));
@@ -155,10 +172,11 @@ function getByte(array: HashWordArray, idx: number): number {
 }
 
 function setByte(array: HashWordArray, idx: number, byteValue: number): void {
+  array.words[idx >>> 2] &= ~(0xff << byteShift(idx & 3));
   array.words[idx >>> 2] |= (byteValue & 0xff) << byteShift(idx & 3);
 }
 
-const generateRandom = (numBytes: number = 16): HashWordArray => {
+const generateRandom = (numBytes: number): HashWordArray => {
   // TODO: fix type of this function in @types/crypto-js
   return (CryptoJS.lib.WordArray.random(numBytes) as any) as HashWordArray;
 };

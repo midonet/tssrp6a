@@ -7,11 +7,25 @@ import {
   createHashWordArray,
   createVerifier,
   generateRandomBigInteger,
+  generateRandomString,
   padWordArray,
   stringToWordArray,
   wordArrayToBigInteger,
 } from "../utils";
 import { test } from "./tests";
+
+test("#generateRandomString", (t) => {
+  t.plan(2);
+  t.equals(10, generateRandomString().length, "Default length");
+  const actualLengths = new Array(32).fill(0);
+  const expectedLengths = new Array(32).fill(0);
+  for (let i = 0; i < 32; ++i) {
+    expectedLengths[i] = i;
+    actualLengths[i] = generateRandomString(i).length;
+  }
+  t.deepEqual(expectedLengths, actualLengths, "Strings lengths are correct");
+});
+
 test("#toFromBigIntegerConversions", (t) => {
   t.plan(3);
   ["aa11", "baa11", "1"].forEach((n) => {
