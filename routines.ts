@@ -88,7 +88,7 @@ export class SRPRoutines {
     let bi: BigInteger;
 
     do {
-      bi = generateRandomBigInteger(numBits / 8);
+      bi = generateRandomBigInteger(numBits / 8).mod(this.parameters.N);
     } while (bi.signum() === 0);
 
     return bi;
