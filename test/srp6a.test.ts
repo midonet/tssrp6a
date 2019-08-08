@@ -1,15 +1,15 @@
 /* eslint-disable no-fallthrough */
-import { SRPConfig } from "../config";
-import { SRPParameters } from "../parameters";
-import { SRPRoutines } from "../routines";
-import { SRPClientSession } from "../session-client";
-import { SRPServerSession } from "../session-server";
+import { SRPConfig } from "../src/config";
+import { SRPParameters } from "../src/parameters";
+import { SRPRoutines } from "../src/routines";
+import { SRPClientSession } from "../src/session-client";
+import { SRPServerSession } from "../src/session-server";
 import {
   createVerifierAndSalt,
   generateRandomString,
   HashWordArray,
   stringToWordArray,
-} from "../utils";
+} from "../src/utils";
 import { test } from "./tests";
 
 const testParameters = new SRPParameters();

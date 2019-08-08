@@ -1,12 +1,12 @@
 /* eslint-disable no-fallthrough */
 // tslint:disable: max-line-length
 import { BigInteger } from "jsbn";
-import { SRPConfig } from "../config";
-import { SRPParameters } from "../parameters";
-import { SRPRoutines } from "../routines";
-import { SRPClientSession } from "../session-client";
-import { SRPServerSession } from "../session-server";
-import { createVerifier } from "../utils";
+import { SRPConfig } from "../src/config";
+import { SRPParameters } from "../src/parameters";
+import { SRPRoutines } from "../src/routines";
+import { SRPClientSession } from "../src/session-client";
+import { SRPServerSession } from "../src/session-server";
+import { createVerifier } from "../src/utils";
 import { test } from "./tests";
 
 test("#SRPSession compatible with nimbusds java implementation, no U padding", (t) => {
