@@ -2,19 +2,44 @@
 
 This library is a TypeScript implementation of [Secure Remote Password](http://srp.stanford.edu/) SRP6a.
 
-SRP allows a user to authenticate to a server without sending the password (zero-knowledge proof of password) using generated private/public keys.
+SRP allows a user to authenticate to a server without sending the password (zero-knowledge proof of password)
+using generated private/public keys.
 
+See
 https://en.wikipedia.org/wiki/Secure_Remote_Password_protocol
+
 https://tools.ietf.org/html/rfc5054
 
-## Signup / registration
+for all the details.
+
+## Usage
+### Signup / registration
 
 [![Diagram](docs/signup.svg)](https://mermaidjs.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgcGFydGljaXBhbnQgQiBhcyBCcm93c2VyXG4gICAgcGFydGljaXBhbnQgUyBhcyBTZXJ2ZXJcbiAgICBOb3RlIGxlZnQgb2YgQjogVXNlciBlbnRlcnM8YnIvPmlkLCBwYXNzd29yZFxuICAgIEItPj5COiBzYWx0ID0gY2xpZW50LmdlbmVyYXRlUmFuZG9tU2FsdCgpXG4gICAgQi0-PkI6IGNsaWVudC5nZW5lcmF0ZVZlcmlmaWVyKHNhbHQsIGlkLCBwYXNzd29yZClcbiAgICBCLT4-UzogZW1haWwsIHNhbHQsIHZlcmlmaWVyXG4gICAgTm90ZSByaWdodCBvZiBTOiBzYXZlIGJ5IGlkOjxici8-c2FsdCwgdmVyaWZpZXJcbiIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In19)
 
 The user requests a registration page, the browser will generate a salt and take the user's identity and password and generate a verifier.  
 The browser sends email, salt, verifier to server. The server saves this to storage.
+Here is a complete example of signup:
+```JavaScript
+import {
+ createVerifierAndSalt, SRPConfig, SRPParameters, SRPRoutines,
+} from "tssrp6a"
 
-## Signin / login
+const srp6aNimbusConfig = new SRPConfig(
+  new SRPParameters(),
+  (p) => new SRPRoutines(p),
+);
+const userId = "hello@world.org";
+const userPassword = "password";
+const { s: salt, v: verifier } = createVerifierAndSalt(
+  srp6aNimbusConfig,
+  userId,
+  userPassword,
+);
+// store salt and verifier in a data base
+```
+
+### Signin / login
 
 [![Diagram](docs/signin.svg)](https://mermaidjs.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgcGFydGljaXBhbnQgQiBhcyBCcm93c2VyXG4gICAgcGFydGljaXBhbnQgUyBhcyBTZXJ2ZXJcbiAgICBOb3RlIGxlZnQgb2YgQjogVXNlciBlbnRlcnM8YnIvPmlkLCBwYXNzd29yZFxuICAgIEItPj5COiBjbGllbnQuc3RlcDEoaWQsIHBhc3N3b3JkKVxuICAgIEItPj5TOiBpZFxuICAgIE5vdGUgcmlnaHQgb2YgUzogZmluZCBpbiBzdG9yYWdlPGJyLz5ieSBpZDo8YnIvPnNhbHQsIHZlcmlmaWVyXG4gICAgUy0-PlM6IGIsQiA9IHNlcnZlci5zdGVwMShpZCwgc2FsdCwgdmVyaWZpZXIpXG4gICAgUy0-PkI6IHNhbHQsIEJcbiAgICBCLT4-QjogYSxBLE0xID0gY2xpZW50LnN0ZXAyKHNhbHQsIEIpXG4gICAgQi0-PlM6IEEsTTFcbiAgICBTLT4-UzogTTIgPSBzZXJ2ZXIuc3RlcDIoYiwgQSwgTTEpXG4gICAgUy0-PkI6IE0yXG4gICAgTm90ZSBsZWZ0IG9mIEI6IEJyb3dzZXIgbWF5IHZlcmlmeTxici8-c2VydmVyXG4gICAgQi0tPj5COiBjbGllbnQuc3RlcDMoYSwgTTIpIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifX0)
 
@@ -30,18 +55,47 @@ Browser may additionally verify the authority of the server from `M2` with step3
 
 Note: `a` and `b` are generated for one authentication "session" and discarded immediately.
 
-## Usage
+Here is a complete example of authentication session:
+```JavaScript
+import {
+ createVerifierAndSalt, SRPClientSession, SRPConfig,
+ SRPParameters, SRPRoutines, SRPServerSession
+} from "tssrp6a"
 
-See [session test](test/session.test.ts) for actual usage of a complete authentication flow between client and server.
+const srp6aNimbusConfig = new SRPConfig(
+  new SRPParameters(),
+  (p) => new SRPRoutines(p),
+);
 
-This package's client and server hashing algorithms of course match, and matches Java's [Nimbus SRP](https://connect2id.com/products/nimbus-srp).
+const username = "hello@world.org";
+let password = "password";
 
-These settings can be overriden, client and server receive a `SRPConfig` instance
-that holds parameters for `N` and `g`, and also an instance of `SRPRoutines`.
-A subclass of routines can be used that uses different hashing and computation
-algorithms, to adapt to any other server implementation.
-[This example](test/srp6a.test.ts) shows how to override computeIdentityHash() routine
-of the client.
+// Sign up
+const { s: salt, v: verifier } = createVerifierAndSalt(
+  srp6aNimbusConfig,
+  username,
+  password,
+);
+
+// Sign in
+const srp6aNimbusClient = new SRPClientSession(srp6aNimbusConfig);
+srp6aNimbusClient.step1(username, password);
+// erase password at this point, it is no longer stored
+password = ""
+
+const server = new SRPServerSession(srp6aNimbusConfig);
+// server gets identifier from client, salt+verifier from db (from signup)
+const B = server.step1(username, salt, verifier);
+
+// client gets challenge B from server step1 and sends prove M1 to server
+const { A, M1 } = srp6aNimbusClient.step2(salt, B);
+
+// servers checks client prove M1 and sends server prove M2 to client
+const M2 = server.step2(A, M1);
+
+// client ensures server identity
+srp6aNimbusClient.step3(M2);
+```
 
 ## Recomendations
 
@@ -52,11 +106,18 @@ Always use SRP in combination with HTTPS. Browsers can be vulnerable to: having 
 The client can chose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
 
 ## Notes
- Please **NOTE** that default routines does not
+
+This package's default configuration matches the following Java's 
+[Nimbus SRP](https://connect2id.com/products/nimbus-srp) configuration:
+```Java
+SRP6CryptoParams.getInstance(2048, "SHA-512")
+```
+
+The default routines does not
 strictly follow SRP6a RFC because user identity is NOT included in the verifier generation.
 This makes possible for malicious server to detect if
 [two users share the same password](https://crypto.stackexchange.com/questions/8626/why-is-tls-srp-verifier-based-on-user-name/9430#9430)
 but also allows client to change it "identity" without regenerating password.
 
-[This example](test/srp6a.test.ts) shows how to make implementation strictly compliant with
+[This example](test/srp6a.test.ts) shows how to make SRP client strictly compliant with
 SRP6a specification.
