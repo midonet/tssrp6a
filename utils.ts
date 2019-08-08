@@ -4,8 +4,6 @@ import { BigInteger } from "jsbn";
 import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
 
-const identity = <T>(a: T) => a;
-
 export type HashWordArray = CryptoJS.LibWordArray;
 
 export const bigIntegerToWordArray = (n: BigInteger): HashWordArray =>
@@ -28,8 +26,9 @@ export function stringToWordArray(str: string): HashWordArray {
  * @returns Padded array or original array if targetLength is less than original
  *          array length.
  */
-export const padWordArray = (targetLength: number) => (
+export const padWordArray = (
   words: HashWordArray,
+  targetLength: number,
 ): HashWordArray => {
   let result: HashWordArray = words;
   if (targetLength > words.sigBytes) {
@@ -48,23 +47,20 @@ export const padWordArray = (targetLength: number) => (
 
 export function hash(
   parameters: SRPParameters,
-  ...as: HashWordArray[]
+  ...arrays: HashWordArray[]
 ): HashWordArray {
-  return hashPadded(parameters, null, ...as);
+  parameters.H.reset();
+  arrays.forEach((hwa) => parameters.H.update(hwa));
+  return parameters.H.finalize();
 }
 
 export function hashPadded(
   parameters: SRPParameters,
-  targetLen: number | null,
-  ...as: HashWordArray[]
+  targetLen: number,
+  ...arrays: HashWordArray[]
 ): HashWordArray {
-  parameters.H.reset();
-
-  as.map(targetLen !== null ? padWordArray(targetLen) : identity).forEach(
-    (wa: HashWordArray) => parameters.H.update(wa),
-  );
-
-  return parameters.H.finalize();
+  const arraysPadded = arrays.map((hwa) => padWordArray(hwa, targetLen));
+  return hash(parameters, ...arraysPadded);
 }
 
 /**
@@ -138,6 +134,7 @@ export function createVerifierAndSalt(
 export const hashBitCount = (parameters: SRPParameters): number =>
   hash(parameters, bigIntegerToWordArray(BigInteger.ONE)).sigBytes << 3;
 
+// TODO: remove when constructor is exported in @types/crypto-js
 export function createHashWordArray(
   words: number[],
   sigBytes: number,
