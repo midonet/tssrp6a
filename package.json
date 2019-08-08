@@ -2,7 +2,7 @@
   "name": "tssrp6a",
   "version": "1.0.6",
   "main": "dist/index.js",
-  "files": ["dist/**/*"],
+  "files": ["dist/**/*", "*.ts"],
   "types": "dist/index.d.ts",
   "private": false,
   "dependencies": {
@@ -25,7 +25,7 @@
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "build": "yarn tsc index.ts --target es6 --module commonjs --outDir dist --sourcemap --declaration",
+    "build": "yarn tsc --build tsconfig.json",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"]}' yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts",
