@@ -1,11 +1,11 @@
 /* eslint-disable no-fallthrough */
 import { BigInteger } from "jsbn";
-import { SRPConfig } from "../config";
-import { SRPParameters } from "../parameters";
-import { SRPRoutines } from "../routines";
-import { SRPSession } from "../session";
-import { SRPClientSession } from "../session-client";
-import { SRPServerSession } from "../session-server";
+import { SRPConfig } from "../src/config";
+import { SRPParameters } from "../src/parameters";
+import { SRPRoutines } from "../src/routines";
+import { SRPSession } from "../src/session";
+import { SRPClientSession } from "../src/session-client";
+import { SRPServerSession } from "../src/session-server";
 import {
   bigIntegerToWordArray,
   createVerifier,
@@ -14,7 +14,7 @@ import {
   generateRandomString,
   hash,
   wordArrayToBigInteger,
-} from "../utils";
+} from "../src/utils";
 import { test } from "./tests";
 
 const TestConfig = new SRPConfig(

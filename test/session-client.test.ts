@@ -1,14 +1,14 @@
 /* eslint-disable no-fallthrough */
 import { BigInteger } from "jsbn";
-import { SRPConfig } from "../config";
-import { SRPParameters } from "../parameters";
-import { SRPRoutines } from "../routines";
-import { SRPClientSession, SRPClientSessionState } from "../session-client";
+import { SRPConfig } from "../src/config";
+import { SRPParameters } from "../src/parameters";
+import { SRPRoutines } from "../src/routines";
+import { SRPClientSession, SRPClientSessionState } from "../src/session-client";
 import {
   createHashWordArray,
   generateRandomBigInteger,
   generateRandomString,
-} from "../utils";
+} from "../src/utils";
 import { test } from "./tests";
 
 const TestConfig = new SRPConfig(

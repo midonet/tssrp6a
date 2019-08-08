@@ -1,6 +1,6 @@
 import { BigInteger } from "jsbn";
-import { SRPParameters } from "../parameters";
-import { bigIntegerToWordArray, hashBitCount } from "../utils";
+import { SRPParameters } from "../src/parameters";
+import { bigIntegerToWordArray, hashBitCount } from "../src/utils";
 import { test } from "./tests";
 
 test("existing hash", (t) => {

@@ -1,7 +1,7 @@
 import { BigInteger } from "jsbn";
-import { SRPConfig } from "../config";
-import { SRPParameters } from "../parameters";
-import { SRPRoutines } from "../routines";
+import { SRPConfig } from "../src/config";
+import { SRPParameters } from "../src/parameters";
+import { SRPRoutines } from "../src/routines";
 import {
   bigIntegerToWordArray,
   createHashWordArray,
@@ -11,7 +11,7 @@ import {
   padWordArray,
   stringToWordArray,
   wordArrayToBigInteger,
-} from "../utils";
+} from "../src/utils";
 import { test } from "./tests";
 
 test("#generateRandomString", (t) => {
