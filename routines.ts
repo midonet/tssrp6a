@@ -43,7 +43,7 @@ export class SRPRoutines {
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
-  public hashAsBase64(key: BigInteger): BigInteger {
+  public hashAsBigInteger(key: BigInteger): BigInteger {
     return wordArrayToBigInteger(this.hash(bigIntegerToWordArray(key)));
   }
 

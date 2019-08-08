@@ -58,7 +58,7 @@ export class SRPSession {
   }
 
   get hashedSharedKey(): BigInteger {
-    return this.config.routines.hashAsBase64(this.sharedKey);
+    return this.config.routines.hashAsBigInteger(this.sharedKey);
   }
 
   get config(): SRPConfig {
