@@ -1,5 +1,7 @@
 # Midokura TSSRP6a
 
+[![npm version](https://badge.fury.io/js/tssrp6a.svg)](https://badge.fury.io/js/tssrp6a)
+
 This library is a TypeScript implementation of [Secure Remote Password](http://srp.stanford.edu/) SRP6a.
 
 SRP allows a user to authenticate to a server without sending the password (zero-knowledge proof of password)
