@@ -1,6 +1,6 @@
 import { BigInteger } from "jsbn";
 import { SRPParameters } from "../parameters";
-import { hashBitCount } from "../utils";
+import { bigIntegerToWordArray, hashBitCount } from "../utils";
 import { test } from "./tests";
 
 test("existing hash", (t) => {
@@ -27,4 +27,19 @@ test("hash bit count", (t) => {
     );
     t.equals(expectedBitSize[idx], hashBitCount(parameters), key);
   });
+});
+
+test("Size of N is correct", (t) => {
+  t.plan(1);
+  // Yes, the 256 bits number is actually 257 bits number
+  // https://groups.google.com/forum/#!topic/clipperz/DJFqZYHv2qk
+  const expectedSizeInBytes: number[] = [33, 64, 96, 128, 192, 256];
+  const actualSizeInBytes: number[] = new Array(6).fill(0);
+  Object.keys(SRPParameters.N).map((key, idx) => {
+    actualSizeInBytes[idx] = bigIntegerToWordArray(
+      SRPParameters.N[key],
+    ).sigBytes;
+  });
+  actualSizeInBytes.sort((x, y) => x - y);
+  t.deepEqual(expectedSizeInBytes, actualSizeInBytes, "N sizes are correct");
 });
