@@ -1,8 +1,11 @@
 {
   "name": "tssrp6a",
-  "version": "1.0.6",
+  "version": "1.1.0-beta-4",
   "main": "dist/index.js",
-  "files": ["dist/**/*", "*.ts"],
+  "files": [
+    "dist/**/*",
+    "*.ts"
+  ],
   "types": "dist/index.d.ts",
   "private": false,
   "dependencies": {
@@ -50,6 +53,10 @@
   "repository": "git@github.com:midokura/platform-frontend.git",
   "author": "Midokura",
   "license": "Apache-2.0",
-  "keywords": ["srp", "srp6a", "authentication"],
+  "keywords": [
+    "srp",
+    "srp6a",
+    "authentication"
+  ],
   "homepage": "https://github.com/midonet/tssrp6a"
 }
