@@ -10,7 +10,9 @@ export const bigIntegerToWordArray = (n: BigInteger): HashWordArray =>
   CryptoJS.enc.Hex.parse(evenLengthHex(n.toString(16)));
 
 export const wordArrayToBigInteger = (words: HashWordArray): BigInteger =>
-  new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
+  words.sigBytes === 256
+    ? new BigInteger(words.words, words.sigBytes)
+    : new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
 
 /**
  * Convert some string into HashWordArray.

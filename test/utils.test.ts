@@ -73,7 +73,7 @@ test("#createVerifierHexSalt errors", (t) => {
 });
 
 test("#bigIntegerToWordArray", (t) => {
-  t.plan(7);
+  t.plan(10);
   const bigOne = BigInteger.ONE;
   let wordArray = bigIntegerToWordArray(bigOne);
   t.equals(1, wordArray.sigBytes);
@@ -84,6 +84,11 @@ test("#bigIntegerToWordArray", (t) => {
   t.equals(1, wordArray.sigBytes);
   t.equals(0, wordArray.words[0], "Zero");
 
+  const bigTwo = new BigInteger("02", 16);
+  wordArray = bigIntegerToWordArray(bigTwo);
+  t.equals(1, wordArray.sigBytes);
+  t.deepEqual([33554432], wordArray.words, "Two");
+
   t.deepEqual(
     { words: [0xff << 24], sigBytes: 1 },
     bigIntegerToWordArray(bigOne.negate()),
@@ -93,6 +98,7 @@ test("#bigIntegerToWordArray", (t) => {
   const testNumber = new BigInteger("0102", 16);
   wordArray = bigIntegerToWordArray(testNumber);
   t.equals(2, wordArray.sigBytes, "Two bytes in 0x0102");
+  t.equals(1, wordArray.words.length, "Two words in 0x0102");
   t.equals(0x0102 << 16, wordArray.words[0]);
 });
 
