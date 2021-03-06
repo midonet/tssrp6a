@@ -1,6 +1,7 @@
 # Midokura TSSRP6a
 
 [![npm version](https://badge.fury.io/js/tssrp6a.svg)](https://badge.fury.io/js/tssrp6a)
+[![CI](https://github.com/midonet/tssrp6a/actions/workflows/main.yml/badge.svg)](https://github.com/midonet/tssrp6a/actions/workflows/main.yml)
 
 This library is a TypeScript implementation of [Secure Remote Password](http://srp.stanford.edu/) SRP6a.
 
