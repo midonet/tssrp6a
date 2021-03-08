@@ -55,7 +55,7 @@ test("#stringToWordArray", (t) => {
     "Array values",
   );
 
-  t.deepEqual(
+  t.deepLooseEqual(
     { words: [], sigBytes: 0 },
     stringToWordArray(""),
     "Empty string, empty array",
@@ -84,7 +84,7 @@ test("#bigIntegerToWordArray", (t) => {
   t.equals(1, wordArray.sigBytes);
   t.equals(0, wordArray.words[0], "Zero");
 
-  t.deepEqual(
+  t.deepLooseEqual(
     { words: [0xff << 24], sigBytes: 1 },
     bigIntegerToWordArray(bigOne.negate()),
     "Negative values are partially supported",
