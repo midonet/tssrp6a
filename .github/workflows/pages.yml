@@ -17,7 +17,7 @@ jobs:
       - name: Install
         run: yarn install --frozen-lockfile
 
-      - name: Coverage
+      - name: Coverage report
         run: yarn coverage:report
 
       - name: Deploy to GitHub Pages
@@ -28,4 +28,19 @@ jobs:
           build_dir: reports/unit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Coverage number
+        run: |
+          yarn coverage > reports/stdout
+          COVERAGE=$(cat reports/stdout | grep "All files" | cut -d "|" -f 5 | sed 's/ //g')
+          echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+      - name: Create the Badge
+        uses: schneegans/dynamic-badges-action@v1.0.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 6d88c7cb89cc67292dc093e5d7bcede3
+          filename: tssrp6a-coverage-badge.json
+          label: Test coverage
+          message: "${{ env.COVERAGE }}%"
+          color: green
 
