@@ -2,6 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/tssrp6a.svg)](https://badge.fury.io/js/tssrp6a)
 [![CI](https://github.com/midonet/tssrp6a/actions/workflows/main.yml/badge.svg)](https://github.com/midonet/tssrp6a/actions/workflows/main.yml)
+[![badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bgrosse-midokura/6d88c7cb89cc67292dc093e5d7bcede3/raw/tssrp6a-coverage-badge.json)](https://midonet.github.io/tssrp6a/)
 
 This library is a TypeScript implementation of [Secure Remote Password](http://srp.stanford.edu/) SRP6a.
 
