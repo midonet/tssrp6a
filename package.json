@@ -9,16 +9,18 @@
   "types": "dist/index.d.ts",
   "private": false,
   "dependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/crypto-js": "^3.1.43",
     "@types/jsbn": "^1.2.29",
     "crypto-js": "^4.0.0",
-    "jsbn": "^1.1.0"
+    "jsbn": "^1.1.0",
+    "source-map-support": "^0.5.19"
   },
   "devDependencies": {
     "@types/node": "^11.13.8",
     "husky": "^2.1.0",
     "lint-staged": "^8.1.5",
-    "nyc": "^14.0.0",
+    "nyc": "15.1.0",
     "prettier": "^1.17.0",
     "tap-diff": "^0.1.1",
     "tap-junit": "^3.1.0",
