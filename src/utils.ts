@@ -1,16 +1,15 @@
 import * as CryptoJS from "crypto-js";
-import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
 
 export type HashWordArray = CryptoJS.LibWordArray;
 
-export const bigIntegerToWordArray = (n: BigInteger): HashWordArray =>
+export const bigIntegerToWordArray = (n: bigint): HashWordArray =>
   CryptoJS.enc.Hex.parse(evenLengthHex(n.toString(16)));
 
-export const wordArrayToBigInteger = (words: HashWordArray): BigInteger =>
-  new BigInteger(CryptoJS.enc.Hex.stringify(words), 16);
+export const wordArrayToBigInt = (words: HashWordArray): bigint =>
+  BigInt(`0x${CryptoJS.enc.Hex.stringify(words)}`);
 
 /**
  * Convert some string into HashWordArray.
@@ -83,16 +82,16 @@ export function generateRandomString(characterCount: number = 10): string {
   return CryptoJS.enc.Utf8.stringify(randomArray);
 }
 
-export function generateRandomBigInteger(numBytes: number = 16): BigInteger {
-  return wordArrayToBigInteger(generateRandom(numBytes));
+export function generateRandomBigInt(numBytes: number = 16): bigint {
+  return wordArrayToBigInt(generateRandom(numBytes));
 }
 
 export function createVerifier(
   config: SRPConfig,
   I: string,
-  s: BigInteger,
+  s: bigint,
   P: string,
-): BigInteger {
+): bigint {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -113,8 +112,8 @@ export function createVerifier(
 }
 
 export interface IVerifierAndSalt {
-  v: BigInteger;
-  s: BigInteger;
+  v: bigint;
+  s: bigint;
 }
 
 export function createVerifierAndSalt(
@@ -132,7 +131,7 @@ export function createVerifierAndSalt(
 }
 
 export const hashBitCount = (parameters: SRPParameters): number =>
-  hash(parameters, bigIntegerToWordArray(BigInteger.ONE)).sigBytes << 3;
+  hash(parameters, bigIntegerToWordArray(BigInt(1))).sigBytes << 3;
 
 // TODO: remove when constructor is exported in @types/crypto-js
 export function createHashWordArray(

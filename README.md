@@ -16,6 +16,14 @@ https://tools.ietf.org/html/rfc5054
 
 for all the details.
 
+## Requirements & Dependencies
+
+The `target` of TypeScript output is `es6`.
+
+Needs [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt) native support, or a polyfill which is not included.
+
+The only dependencies are [crypto-js](https://www.npmjs.com/package/crypto-js) and [bigint-mod-arith](https://www.npmjs.com/package/bigint-mod-arith).
+
 ## Usage
 ### Signup / registration
 
