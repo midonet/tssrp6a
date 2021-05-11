@@ -1,4 +1,3 @@
-import { BigInteger } from "jsbn";
 import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
@@ -6,13 +5,16 @@ import {
   bigIntegerToWordArray,
   createHashWordArray,
   createVerifier,
-  generateRandomBigInteger,
+  generateRandomBigInt,
   generateRandomString,
   padWordArray,
   stringToWordArray,
-  wordArrayToBigInteger,
+  wordArrayToBigInt,
 } from "../src/utils";
 import { test } from "./tests";
+
+const ZERO = BigInt(0);
+const ONE = BigInt(1);
 
 test("#generateRandomString", (t) => {
   t.plan(2);
@@ -29,8 +31,8 @@ test("#generateRandomString", (t) => {
 test("#toFromBigIntegerConversions", (t) => {
   t.plan(3);
   ["aa11", "baa11", "1"].forEach((n) => {
-    const bn = new BigInteger(n, 16);
-    t.true(wordArrayToBigInteger(bigIntegerToWordArray(bn)).equals(bn), `${n}`);
+    const bn = BigInt(`0x${n}`);
+    t.equals(wordArrayToBigInt(bigIntegerToWordArray(bn)), bn, `${n}`);
   });
 });
 
@@ -64,7 +66,7 @@ test("#stringToWordArray", (t) => {
 
 test("#createVerifierHexSalt errors", (t) => {
   const config = new SRPConfig(new SRPParameters(), (p) => new SRPRoutines(p));
-  const salt = generateRandomBigInteger();
+  const salt = generateRandomBigInt();
   t.throws(() => createVerifier(config, "", salt, "password"));
   t.throws(() => createVerifier(config, " ", salt, "password"));
   t.throws(() => createVerifier(config, "identifier", null!, "password"));
@@ -74,23 +76,21 @@ test("#createVerifierHexSalt errors", (t) => {
 
 test("#bigIntegerToWordArray", (t) => {
   t.plan(7);
-  const bigOne = BigInteger.ONE;
-  let wordArray = bigIntegerToWordArray(bigOne);
+  let wordArray = bigIntegerToWordArray(ONE);
   t.equals(1, wordArray.sigBytes);
   t.equals(1 << 24, wordArray.words[0], "One");
 
-  const bigZero = BigInteger.ZERO;
-  wordArray = bigIntegerToWordArray(bigZero);
+  wordArray = bigIntegerToWordArray(ZERO);
   t.equals(1, wordArray.sigBytes);
   t.equals(0, wordArray.words[0], "Zero");
 
   t.deepLooseEqual(
     { words: [0xff << 24], sigBytes: 1 },
-    bigIntegerToWordArray(bigOne.negate()),
+    bigIntegerToWordArray(-ONE),
     "Negative values are partially supported",
   );
 
-  const testNumber = new BigInteger("0102", 16);
+  const testNumber = BigInt("0x0102");
   wordArray = bigIntegerToWordArray(testNumber);
   t.equals(2, wordArray.sigBytes, "Two bytes in 0x0102");
   t.equals(0x0102 << 16, wordArray.words[0]);
@@ -99,49 +99,44 @@ test("#bigIntegerToWordArray", (t) => {
 test("#bigIntegerToWordArray 5 bytes number", (t) => {
   t.plan(5);
   const numberHexStr = "7fff7effee";
-  const testNumber = new BigInteger(numberHexStr, 16);
-  t.equals(1, testNumber.signum(), "The number is positive");
+  const testNumber = BigInt(`0x${numberHexStr}`);
+  t.true(testNumber > 0, "The number is positive");
   t.equals(
     numberHexStr,
     testNumber.toString(16),
     "toString() returns the same string",
   );
   const wordArray = bigIntegerToWordArray(testNumber);
-  t.equals(5, wordArray.sigBytes, `Five bytes in 0x${numberHexStr}`);
+  t.equals(5, wordArray.sigBytes, `Five bytes in ${numberHexStr}`);
   t.equals(0x7fff7eff, wordArray.words[0], "First word is correct");
   t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
 });
 
 test("#bigIntegerToWordArray 1 byte number", (t) => {
   t.plan(2);
-  const numberHexStr = "ff";
-  const testNumber = new BigInteger(numberHexStr, 16);
+  const numberHexStr = "0xff";
+  const testNumber = BigInt(numberHexStr);
   const wordArray = bigIntegerToWordArray(testNumber);
-  t.equals(1, wordArray.sigBytes, `One byte in 0x${numberHexStr}`);
+  t.equals(1, wordArray.sigBytes, `One byte in {numberHexStr}`);
   t.equals(
-    testNumber.intValue() << 24,
+    Number(testNumber) << 24,
     wordArray.words[0],
     "First word is correct",
   );
 });
 
 test("#bigIntegerToWordArray 5 bytes number, big byte", (t) => {
-  t.plan(5);
+  t.plan(4);
   const numberHexStr = "ffffffffee";
-  const testNumber = new BigInteger(numberHexStr, 16);
-  t.equals(1, testNumber.signum(), "The number is positive");
+  const testNumber = BigInt(`0x${numberHexStr}`);
+  t.true(testNumber > 0, "The number is positive");
   t.equals(
     numberHexStr,
     testNumber.toString(16),
     "toString() returns the same string",
   );
   const wordArray = bigIntegerToWordArray(testNumber);
-  t.equals(5, wordArray.sigBytes, `Five bytes in 0x${numberHexStr}`);
-  t.equals(
-    new BigInteger("ffffffff", 16).intValue(),
-    wordArray.words[0],
-    "First word is correct",
-  );
+  t.equals(5, wordArray.sigBytes, `Five bytes in ${numberHexStr}`);
   t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
 });
 
@@ -171,7 +166,7 @@ test("#paddArray", (t) => {
 
 test("#paddArray 1 byte", (t) => {
   t.plan(3);
-  const testHashArray = bigIntegerToWordArray(BigInteger.ONE);
+  const testHashArray = bigIntegerToWordArray(ONE);
   t.equal(1, testHashArray.sigBytes);
 
   const paddedLibArray = padWordArray(testHashArray, 256);

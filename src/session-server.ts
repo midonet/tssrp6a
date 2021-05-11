@@ -1,4 +1,4 @@
-import { BigInteger } from "jsbn";
+import { modPow } from "bigint-mod-arith";
 import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
 
@@ -12,10 +12,10 @@ interface ISRPServerStateStepInit {
 interface ISRPServerStateStep1 {
   step: "1";
   identifier: string;
-  salt: BigInteger;
-  verifier: BigInteger;
-  b: BigInteger;
-  B: BigInteger;
+  salt: bigint;
+  verifier: bigint;
+  b: bigint;
+  B: bigint;
 }
 interface ISRPServerStateStep2 {
   step: "2";
@@ -28,7 +28,7 @@ export class SRPServerSession {
     this.config = config;
   }
 
-  public step1(identifier: string, salt: BigInteger, verifier: BigInteger) {
+  public step1(identifier: string, salt: bigint, verifier: bigint) {
     if (this.state.step !== "init") {
       throw new Error("step1 not from init");
     }
@@ -47,12 +47,12 @@ export class SRPServerSession {
     return B;
   }
 
-  public step2(A: BigInteger, M1: BigInteger) {
+  public step2(A: bigint, M1: bigint) {
     if (this.state.step !== "1") {
       throw new Error("step2 not from step1");
     }
 
-    if (!A) {
+    if (A === null) {
       throw new Error("Client public value (A) must not be null");
     }
 
@@ -83,7 +83,7 @@ export class SRPServerSession {
       S,
     );
 
-    if (!computedM1.equals(M1)) {
+    if (computedM1 !== M1) {
       throw new Error("Bad client credentials");
     }
 
@@ -96,22 +96,19 @@ export class SRPServerSession {
 
 const computeServerPublicValue = (
   parameters: SRPParameters,
-  k: BigInteger,
-  v: BigInteger,
-  b: BigInteger,
-): BigInteger => {
-  return parameters.g
-    .modPow(b, parameters.N)
-    .add(v.multiply(k))
-    .mod(parameters.N);
+  k: bigint,
+  v: bigint,
+  b: bigint,
+): bigint => {
+  return (modPow(parameters.g, b, parameters.N) + v * k) % parameters.N;
 };
 
 const computeServerSessionKey = (
-  N: BigInteger,
-  v: BigInteger,
-  u: BigInteger,
-  A: BigInteger,
-  b: BigInteger,
-): BigInteger => {
-  return v.modPow(u, N).multiply(A).modPow(b, N);
+  N: bigint,
+  v: bigint,
+  u: bigint,
+  A: bigint,
+  b: bigint,
+): bigint => {
+  return modPow(modPow(v, u, N) * A, b, N);
 };

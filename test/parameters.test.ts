@@ -1,4 +1,3 @@
-import { BigInteger } from "jsbn";
 import { SRPParameters } from "../src/parameters";
 import { bigIntegerToWordArray, hashBitCount } from "../src/utils";
 import { test } from "./tests";
@@ -22,7 +21,7 @@ test("hash bit count", (t) => {
   Object.keys(SRPParameters.H).map((key, idx) => {
     const parameters = new SRPParameters(
       SRPParameters.N["2048"],
-      new BigInteger([2]),
+      BigInt([2]),
       SRPParameters.H[key],
     );
     t.equals(expectedBitSize[idx], hashBitCount(parameters), key);

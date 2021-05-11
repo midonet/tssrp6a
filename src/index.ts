@@ -7,6 +7,6 @@ export {
   createVerifierAndSalt,
   IVerifierAndSalt,
   bigIntegerToWordArray,
-  wordArrayToBigInteger,
-  generateRandomBigInteger,
+  wordArrayToBigInt,
+  generateRandomBigInt,
 } from "./utils";

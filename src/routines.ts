@@ -1,14 +1,13 @@
-import { BigInteger } from "jsbn";
-
+import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
 import {
   bigIntegerToWordArray,
-  generateRandomBigInteger,
+  generateRandomBigInt,
   hash,
   hashPadded,
   HashWordArray,
   stringToWordArray,
-  wordArrayToBigInteger,
+  wordArrayToBigInt,
 } from "./utils";
 
 /**
@@ -40,12 +39,12 @@ export class SRPRoutines {
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
-  public hashAsBigInteger(key: BigInteger): BigInteger {
-    return wordArrayToBigInteger(this.hash(bigIntegerToWordArray(key)));
+  public hashAsBigInt(key: bigint): bigint {
+    return wordArrayToBigInt(this.hash(bigIntegerToWordArray(key)));
   }
 
-  public computeK(): BigInteger {
-    return wordArrayToBigInteger(
+  public computeK(): bigint {
+    return wordArrayToBigInt(
       this.hashPadded(
         bigIntegerToWordArray(this.parameters.N),
         bigIntegerToWordArray(this.parameters.g),
@@ -53,66 +52,64 @@ export class SRPRoutines {
     );
   }
 
-  public generateRandomSalt(numBytes?: number): BigInteger {
+  public generateRandomSalt(numBytes?: number): bigint {
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
     const saltBytes = numBytes || (2 * this.parameters.HBits) / 8;
-    return generateRandomBigInteger(saltBytes);
+    return generateRandomBigInt(saltBytes);
   }
 
-  public computeX(I: string, s: BigInteger, P: string): BigInteger {
-    return wordArrayToBigInteger(
+  public computeX(I: string, s: bigint, P: string): bigint {
+    return wordArrayToBigInt(
       this.hash(bigIntegerToWordArray(s), this.computeIdentityHash(I, P)),
     );
   }
 
-  public computeXStep2(s: BigInteger, identityHash: HashWordArray): BigInteger {
-    return wordArrayToBigInteger(
-      this.hash(bigIntegerToWordArray(s), identityHash),
-    );
+  public computeXStep2(s: bigint, identityHash: HashWordArray): bigint {
+    return wordArrayToBigInt(this.hash(bigIntegerToWordArray(s), identityHash));
   }
 
   public computeIdentityHash(_: string, P: string): HashWordArray {
     return this.hash(stringToWordArray(P));
   }
 
-  public computeVerifier(x: BigInteger): BigInteger {
-    return this.parameters.g.modPow(x, this.parameters.N);
+  public computeVerifier(x: bigint): bigint {
+    return modPow(this.parameters.g, x, this.parameters.N);
   }
 
-  public generatePrivateValue(): BigInteger {
+  public generatePrivateValue(): bigint {
     const numBits = Math.max(256, this.parameters.NBits);
-    let bi: BigInteger;
+    let bi: bigint;
 
     do {
-      bi = generateRandomBigInteger(numBits / 8).mod(this.parameters.N);
-    } while (bi.signum() === 0);
+      bi = generateRandomBigInt(numBits / 8) % this.parameters.N;
+    } while (bi === BigInt(0));
 
     return bi;
   }
 
-  public computeClientPublicValue(a: BigInteger): BigInteger {
-    return this.parameters.g.modPow(a, this.parameters.N);
+  public computeClientPublicValue(a: bigint): bigint {
+    return modPow(this.parameters.g, a, this.parameters.N);
   }
 
-  public isValidPublicValue(value: BigInteger): boolean {
-    return value.mod(this.parameters.N).signum() !== 0;
+  public isValidPublicValue(value: bigint): boolean {
+    return value % this.parameters.N !== BigInt(0);
   }
 
-  public computeU(A: BigInteger, B: BigInteger): BigInteger {
-    return wordArrayToBigInteger(
+  public computeU(A: bigint, B: bigint): bigint {
+    return wordArrayToBigInt(
       this.hashPadded(bigIntegerToWordArray(A), bigIntegerToWordArray(B)),
     );
   }
 
   public computeClientEvidence(
     _I: string,
-    _s: BigInteger,
-    A: BigInteger,
-    B: BigInteger,
-    S: BigInteger,
-  ): BigInteger {
-    return wordArrayToBigInteger(
+    _s: bigint,
+    A: bigint,
+    B: bigint,
+    S: bigint,
+  ): bigint {
+    return wordArrayToBigInt(
       this.hash(
         bigIntegerToWordArray(A),
         bigIntegerToWordArray(B),
@@ -121,12 +118,8 @@ export class SRPRoutines {
     );
   }
 
-  public computeServerEvidence(
-    A: BigInteger,
-    M1: BigInteger,
-    S: BigInteger,
-  ): BigInteger {
-    return wordArrayToBigInteger(
+  public computeServerEvidence(A: bigint, M1: bigint, S: bigint): bigint {
+    return wordArrayToBigInt(
       this.hash(
         bigIntegerToWordArray(A),
         bigIntegerToWordArray(M1),
@@ -136,16 +129,16 @@ export class SRPRoutines {
   }
 
   public computeClientSessionKey(
-    k: BigInteger,
-    x: BigInteger,
-    u: BigInteger,
-    a: BigInteger,
-    B: BigInteger,
-  ): BigInteger {
-    const exp = u.multiply(x).add(a);
-    const tmp = this.parameters.g.modPow(x, this.parameters.N).multiply(k);
+    k: bigint,
+    x: bigint,
+    u: bigint,
+    a: bigint,
+    B: bigint,
+  ): bigint {
+    const exp = u * x + a;
+    const tmp = modPow(this.parameters.g, x, this.parameters.N) * k;
 
-    return B.subtract(tmp).modPow(exp, this.parameters.N);
+    return modPow(B - tmp, exp, this.parameters.N);
   }
 }
 

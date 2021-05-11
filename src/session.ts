@@ -1,5 +1,3 @@
-import { BigInteger } from "jsbn";
-
 import { SRPConfig } from "./config";
 
 export class SRPSession {
@@ -11,7 +9,7 @@ export class SRPSession {
   /**
    * Shared session key "S"
    */
-  private _S?: BigInteger;
+  private _S?: bigint;
 
   /**
    * Number of milliseconds between session activity before timing out this
@@ -35,7 +33,7 @@ export class SRPSession {
     this._timedOut = false;
   }
 
-  get S(): BigInteger {
+  get S(): bigint {
     if (this._S) {
       return this._S;
     }
@@ -43,7 +41,7 @@ export class SRPSession {
     throw new Error("Shared Key (S) not set");
   }
 
-  set S(S: BigInteger) {
+  set S(S: bigint) {
     if (this._S) {
       throw new Error(`Shared key (S) already set: ${this._S.toString(16)}`);
     }
@@ -51,8 +49,8 @@ export class SRPSession {
     this._S = S;
   }
 
-  get hashedSharedKey(): BigInteger {
-    return this.config.routines.hashAsBigInteger(this.S);
+  get hashedSharedKey(): bigint {
+    return this.config.routines.hashAsBigInt(this.S);
   }
 
   get config(): SRPConfig {

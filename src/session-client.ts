@@ -1,5 +1,3 @@
-import { BigInteger } from "jsbn";
-
 import { SRPConfig } from "./config";
 import { SRPSession } from "./session";
 import { HashWordArray } from "./utils";
@@ -12,8 +10,8 @@ export enum SRPClientSessionState {
 }
 
 export interface ISRPClientCredentials {
-  A: BigInteger;
-  M1: BigInteger;
+  A: bigint;
+  M1: bigint;
 }
 
 export class SRPClientSession extends SRPSession {
@@ -35,12 +33,12 @@ export class SRPClientSession extends SRPSession {
   /**
    * Client public value "A"
    */
-  private _A?: BigInteger;
+  private _A?: bigint;
 
   /**
    * Client evidence message "M1"
    */
-  private _M1?: BigInteger;
+  private _M1?: bigint;
 
   constructor(config: SRPConfig, timeoutMillis?: number) {
     super(config, timeoutMillis);
@@ -67,7 +65,7 @@ export class SRPClientSession extends SRPSession {
     this._registerActivity();
   }
 
-  public step2(salt: BigInteger, B: BigInteger): ISRPClientCredentials {
+  public step2(salt: bigint, B: bigint): ISRPClientCredentials {
     this._expectState(SRPClientSessionState.STEP_1);
     this._throwOnTimeout();
 
@@ -98,7 +96,7 @@ export class SRPClientSession extends SRPSession {
     };
   }
 
-  public step3(M2: BigInteger): void {
+  public step3(M2: bigint): void {
     this._expectState(SRPClientSessionState.STEP_2);
     this._throwOnTimeout();
 
@@ -112,7 +110,7 @@ export class SRPClientSession extends SRPSession {
       this.S,
     );
 
-    if (!computedM2.equals(M2)) {
+    if (computedM2 !== M2) {
       throw new Error("Bad server credentials");
     }
 
@@ -161,7 +159,7 @@ export class SRPClientSession extends SRPSession {
     this._IH = identityHash;
   }
 
-  get A(): BigInteger {
+  get A(): bigint {
     if (this._A) {
       return this._A;
     }
@@ -169,7 +167,7 @@ export class SRPClientSession extends SRPSession {
     throw new Error("Public client value (A) not set");
   }
 
-  set A(A: BigInteger) {
+  set A(A: bigint) {
     if (this._A) {
       throw new Error(
         `Public client value (A) already set: ${this._A.toString(16)}`,
@@ -183,7 +181,7 @@ export class SRPClientSession extends SRPSession {
     this._A = A;
   }
 
-  get M1(): BigInteger {
+  get M1(): bigint {
     if (this._M1) {
       return this._M1;
     }
@@ -191,7 +189,7 @@ export class SRPClientSession extends SRPSession {
     throw new Error("Client evidence (M1) not set");
   }
 
-  set M1(M1: BigInteger) {
+  set M1(M1: bigint) {
     if (this._M1) {
       throw new Error(
         `Client evidence (M1) already set: ${this._M1.toString(16)}`,

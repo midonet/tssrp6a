@@ -1,4 +1,3 @@
-import { BigInteger } from "jsbn";
 import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
@@ -10,11 +9,10 @@ import { test } from "./tests";
 test("#SRP6aRFC5054", (t) => {
   t.plan(8);
 
-  const N = new BigInteger(
-    "EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C9C256576D674DF7496EA81D3383B4813D692C6E0E0D5D8E250B98BE48E495C1D6089DAD15DC7D7B46154D6B6CE8EF4AD69B15D4982559B297BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9AFD5138FE8376435B9FC61D2FC0EB06E3",
-    16,
+  const N = BigInt(
+    "0xEEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C9C256576D674DF7496EA81D3383B4813D692C6E0E0D5D8E250B98BE48E495C1D6089DAD15DC7D7B46154D6B6CE8EF4AD69B15D4982559B297BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9AFD5138FE8376435B9FC61D2FC0EB06E3",
   );
-  const G = new BigInteger("2");
+  const G = BigInt("2");
   const parameters = new SRPParameters(N, G, SRPParameters.H.SHA1);
   const username = "alice";
   const password = "password123";
@@ -24,20 +22,22 @@ test("#SRP6aRFC5054", (t) => {
       return this.hash(stringToWordArray(`${I}:${P}`));
     }
 
-    public generatePrivateValue(): BigInteger {
-      return new BigInteger(
-        "60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393",
-        16,
-      ).mod(this.parameters.N);
+    public generatePrivateValue(): bigint {
+      return (
+        BigInt(
+          "0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393",
+        ) % this.parameters.N
+      );
     }
   }
 
   class TestServerRoutines extends SRPRoutines {
-    public generatePrivateValue(): BigInteger {
-      return new BigInteger(
-        "E487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D105284D20",
-        16,
-      ).mod(this.parameters.N);
+    public generatePrivateValue(): bigint {
+      return (
+        BigInt(
+          "0xE487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D105284D20",
+        ) % this.parameters.N
+      );
     }
   }
 
@@ -49,7 +49,7 @@ test("#SRP6aRFC5054", (t) => {
     (p) => new TestServerRoutines(p),
   );
 
-  const salt = new BigInteger("BEB25379D1A8581EB5A727673A2441EE", 16);
+  const salt = BigInt("0xBEB25379D1A8581EB5A727673A2441EE");
   const verifier = createVerifier(clientConfig, username, salt, password);
 
   t.equals(

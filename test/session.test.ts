@@ -1,4 +1,3 @@
-import { BigInteger } from "jsbn";
 import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
@@ -9,12 +8,15 @@ import {
   bigIntegerToWordArray,
   createVerifier,
   createVerifierAndSalt,
-  generateRandomBigInteger,
+  generateRandomBigInt,
   generateRandomString,
   hash,
-  wordArrayToBigInteger,
+  wordArrayToBigInt,
 } from "../src/utils";
 import { test } from "./tests";
+
+const ZERO = BigInt(0);
+const ONE = BigInt(1);
 
 const TestConfig = new SRPConfig(
   new SRPParameters(),
@@ -104,7 +106,7 @@ test("error - not in step 1", (t) => {
   const serverSession = new SRPServerSession(TestConfig);
 
   t.throws(() => {
-    serverSession.step2(BigInteger.ONE, BigInteger.ONE);
+    serverSession.step2(ONE, ONE);
   }, /step2 not from step1/i);
 });
 
@@ -130,12 +132,12 @@ test('error - not in step "init"', (t) => {
 test("error - bad/empty A or M1", (t) => {
   t.plan(5);
 
-  const someBigInteger = generateRandomBigInteger();
+  const someBigInteger = generateRandomBigInt();
 
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
     serverSession.step1("pepi", someBigInteger, someBigInteger);
-    serverSession.step2(null!, BigInteger.ONE);
+    serverSession.step2(null!, ONE);
   }, /Client public value \(A\) must not be null/i);
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
@@ -155,21 +157,20 @@ test("error - bad/empty A or M1", (t) => {
   t.throws(() => {
     const serverSession = new SRPServerSession(TestConfig);
     serverSession.step1("pepi", someBigInteger, someBigInteger);
-    serverSession.step2(BigInteger.ZERO, someBigInteger);
+    serverSession.step2(ZERO, someBigInteger);
   }, /Invalid Client public value \(A\): /i);
 });
 
 test("#SRPSessionGetters success (set values)", (t) => {
   const session = new TestSRPSession();
 
-  session.S = generateRandomBigInteger();
+  session.S = generateRandomBigInt();
 
   t.doesNotThrow(() => session.S);
-  t.true(
-    session.hashedSharedKey.equals(
-      wordArrayToBigInteger(
-        hash(session.config.parameters, bigIntegerToWordArray(session.S)),
-      ),
+  t.equals(
+    session.hashedSharedKey,
+    wordArrayToBigInt(
+      hash(session.config.parameters, bigIntegerToWordArray(session.S)),
     ),
   );
   t.end();
@@ -185,7 +186,7 @@ test("#SRPSessionGetters failure (not-set values)", (t) => {
 test("#SRPSessionSetters success (not set yet)", (t) => {
   const session = new TestSRPSession();
 
-  const S = generateRandomBigInteger();
+  const S = generateRandomBigInt();
 
   t.doesNotThrow(() => {
     session.S = S;
@@ -196,7 +197,7 @@ test("#SRPSessionSetters success (not set yet)", (t) => {
 test("#SRPSessionSetters failure (already set)", (t) => {
   const session = new TestSRPSession();
 
-  const S = generateRandomBigInteger();
+  const S = generateRandomBigInt();
 
   session.S = S;
 
