@@ -17,6 +17,9 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/node": "^11.13.8",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "eslint": "^7.26.0",
     "husky": "^2.1.0",
     "lint-staged": "^8.1.5",
     "nyc": "15.1.0",
@@ -26,7 +29,6 @@
     "tap-junit": "^3.1.0",
     "tape": "5.2.2",
     "ts-node": "^8.1.0",
-    "tslint": "^5.16.0",
     "typescript": "^3.4.5"
   },
   "scripts": {
@@ -46,7 +48,7 @@
     "linters": {
       "*.{ts,tsx}": [
         "yarn prettier --write",
-        "yarn tslint -c tslint.json --fix",
+        "yarn eslint src test --fix",
         "git add"
       ]
     }
