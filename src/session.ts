@@ -1,9 +1,7 @@
-// @flow
 import { BigInteger } from "jsbn";
 
 import { SRPConfig } from "./config";
 
-// tslint:disable:variable-name
 export class SRPSession {
   /**
    * SRPConfig used in this session.

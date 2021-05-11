@@ -11,7 +11,6 @@ import {
   wordArrayToBigInteger,
 } from "./utils";
 
-// tslint:disable:max-line-length
 /**
  * Default routines used for SRP calculation.
  *
@@ -20,9 +19,7 @@ import {
  * and the reference routine implementation at:
  * https://bitbucket.org/connect2id/nimbus-srp/src/c88fec8a6dcd46dacf1e031b52f9bffca902acf4/src/main/java/com/nimbusds/srp6/SRP6Routines.java
  */
-// tslint:enable:max-line-length
 
-// tslint:disable:variable-name
 export class SRPRoutines {
   private _parameters: SRPParameters;
 

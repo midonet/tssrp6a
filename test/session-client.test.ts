@@ -1,4 +1,3 @@
-/* eslint-disable no-fallthrough */
 import { BigInteger } from "jsbn";
 import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
@@ -27,9 +26,12 @@ class TestSRPClientSession extends SRPClientSession {
         case SRPClientSessionState.STEP_3:
         case SRPClientSessionState.STEP_2:
           this.assumeStep2();
+          break;
         case SRPClientSessionState.STEP_1:
           this.assumeStep1();
+          break;
         case SRPClientSessionState.INIT:
+          break;
         default:
           break;
       }
