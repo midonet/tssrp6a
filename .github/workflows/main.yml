@@ -18,6 +18,10 @@ jobs:
 
       - name: Install
         run: yarn install --frozen-lockfile
+      - name: Style checks
+        run: |
+          yarn prettier -c "src/**" "test/**"
+          yarn eslint src test
       - name: Build
         run: yarn build
       - name: Tests
