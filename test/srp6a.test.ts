@@ -1,4 +1,3 @@
-/* eslint-disable no-fallthrough */
 import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";

@@ -1,8 +1,6 @@
-// @flow
 import { SRPParameters } from "./parameters";
 import { SRPRoutines, SRPRoutinesFactory } from "./routines";
 
-// tslint:disable:variable-name
 export class SRPConfig {
   private _parameters: SRPParameters;
   private _routines: SRPRoutines;

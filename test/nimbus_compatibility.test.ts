@@ -1,5 +1,3 @@
-/* eslint-disable no-fallthrough */
-// tslint:disable: max-line-length
 import { BigInteger } from "jsbn";
 import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
