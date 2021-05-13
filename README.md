@@ -34,17 +34,14 @@ The browser sends email, salt, verifier to server. The server saves this to stor
 Here is a complete example of signup:
 ```JavaScript
 import {
- createVerifierAndSalt, SRPConfig, SRPParameters, SRPRoutines,
+ createVerifierAndSalt, SRPParameters, SRPRoutines,
 } from "tssrp6a"
 
-const srp6aNimbusConfig = new SRPConfig(
-  new SRPParameters(),
-  (p) => new SRPRoutines(p),
-);
+const srp6aNimbusRoutines = new SRPRoutines(new SRPParameters());
 const userId = "hello@world.org";
 const userPassword = "password";
 const { s: salt, v: verifier } = createVerifierAndSalt(
-  srp6aNimbusConfig,
+  srp6aNimbusRoutines,
   userId,
   userPassword,
 );
@@ -70,32 +67,29 @@ Note: `a` and `b` are generated for one authentication "session" and discarded i
 Here is a complete example of authentication session:
 ```JavaScript
 import {
- createVerifierAndSalt, SRPClientSession, SRPConfig,
- SRPParameters, SRPRoutines, SRPServerSession
+ createVerifierAndSalt, SRPClientSession, SRPParameters, SRPRoutines,
+ SRPServerSession
 } from "tssrp6a"
 
-const srp6aNimbusConfig = new SRPConfig(
-  new SRPParameters(),
-  (p) => new SRPRoutines(p),
-);
+const srp6aNimbusRoutines = new SRPRoutines(new SRPParameters());
 
 const username = "hello@world.org";
 let password = "password";
 
 // Sign up
 const { s: salt, v: verifier } = createVerifierAndSalt(
-  srp6aNimbusConfig,
+  srp6aNimbusRoutines,
   username,
   password,
 );
 
 // Sign in
-const srp6aNimbusClient = new SRPClientSession(srp6aNimbusConfig);
+const srp6aNimbusClient = new SRPClientSession(srp6aNimbusRoutines);
 srp6aNimbusClient.step1(username, password);
 // erase password at this point, it is no longer stored
 password = ""
 
-const server = new SRPServerSession(srp6aNimbusConfig);
+const server = new SRPServerSession(srp6aNimbusRoutines);
 // server gets identifier from client, salt+verifier from db (from signup)
 const B = server.step1(username, salt, verifier);
 

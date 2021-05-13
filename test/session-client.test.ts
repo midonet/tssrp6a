@@ -1,5 +1,4 @@
 /* eslint-disable no-fallthrough */
-import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession, SRPClientSessionState } from "../src/session-client";
@@ -12,14 +11,9 @@ import { test } from "./tests";
 
 const ZERO = BigInt(0);
 
-const TestConfig = new SRPConfig(
-  new SRPParameters(),
-  (p) => new SRPRoutines(p),
-);
-
 class TestSRPClientSession extends SRPClientSession {
   constructor(startingState?: SRPClientSessionState, timeoutMillis?: number) {
-    super(TestConfig, timeoutMillis);
+    super(new SRPRoutines(new SRPParameters()), timeoutMillis);
 
     if (startingState) {
       this.stateStep = startingState;
@@ -43,10 +37,7 @@ class TestSRPClientSession extends SRPClientSession {
     const userId = generateRandomString(16);
     const userPassword = generateRandomString(16);
     this.I = userId;
-    this.identityHash = this.config.routines.computeIdentityHash(
-      userId,
-      userPassword,
-    );
+    this.identityHash = this.routines.computeIdentityHash(userId, userPassword);
   }
 
   public assumeStep2(): void {
@@ -85,7 +76,7 @@ test("#SRPSetters success (not set yet)", (t) => {
   const M1 = generateRandomBigInt();
 
   t.doesNotThrow(() => {
-    session.identityHash = session.config.routines.computeIdentityHash(I, P);
+    session.identityHash = session.routines.computeIdentityHash(I, P);
   });
   t.doesNotThrow(() => {
     session.A = A;
@@ -101,7 +92,7 @@ test("#SRPSetters failure (already set)", (t) => {
 
   const I = generateRandomString(16);
   const P = generateRandomString(16);
-  const IH = session.config.routines.computeIdentityHash(I, P);
+  const IH = session.routines.computeIdentityHash(I, P);
   const A = generateRandomBigInt();
   const M1 = generateRandomBigInt();
 

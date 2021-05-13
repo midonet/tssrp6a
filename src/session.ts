@@ -1,10 +1,10 @@
-import { SRPConfig } from "./config";
+import { SRPRoutines } from "./routines";
 
 export class SRPSession {
   /**
-   * SRPConfig used in this session.
+   * SRPRoutines with SRPParameters used in this session.
    */
-  private _config: SRPConfig;
+  private _routines: SRPRoutines;
 
   /**
    * Shared session key "S"
@@ -27,8 +27,8 @@ export class SRPSession {
    */
   private _timedOut: boolean;
 
-  constructor(config: SRPConfig, timeoutMillis?: number) {
-    this._config = config;
+  constructor(routines: SRPRoutines, timeoutMillis?: number) {
+    this._routines = routines;
     this._timeoutMillis = timeoutMillis;
     this._timedOut = false;
   }
@@ -50,11 +50,11 @@ export class SRPSession {
   }
 
   get hashedSharedKey(): bigint {
-    return this.config.routines.hashAsBigInt(this.S);
+    return this.routines.hashAsBigInt(this.S);
   }
 
-  get config(): SRPConfig {
-    return this._config;
+  get routines(): SRPRoutines {
+    return this._routines;
   }
 
   protected _throwOnTimeout() {

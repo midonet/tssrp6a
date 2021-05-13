@@ -1,4 +1,3 @@
-import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import {
@@ -65,12 +64,12 @@ test("#stringToWordArray", (t) => {
 });
 
 test("#createVerifierHexSalt errors", (t) => {
-  const config = new SRPConfig(new SRPParameters(), (p) => new SRPRoutines(p));
+  const routines = new SRPRoutines(new SRPParameters());
   const salt = generateRandomBigInt();
-  t.throws(() => createVerifier(config, "", salt, "password"));
-  t.throws(() => createVerifier(config, " ", salt, "password"));
-  t.throws(() => createVerifier(config, "identifier", null!, "password"));
-  t.throws(() => createVerifier(config, "identifier", salt, ""));
+  t.throws(() => createVerifier(routines, "", salt, "password"));
+  t.throws(() => createVerifier(routines, " ", salt, "password"));
+  t.throws(() => createVerifier(routines, "identifier", null!, "password"));
+  t.throws(() => createVerifier(routines, "identifier", salt, ""));
   t.end();
 });
 

@@ -1,6 +1,6 @@
 import { modPow } from "bigint-mod-arith";
-import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
+import { SRPRoutines } from "./routines";
 
 type SRPServerStateStep =
   | ISRPServerStateStepInit
@@ -22,10 +22,11 @@ interface ISRPServerStateStep2 {
 }
 
 export class SRPServerSession {
-  private config: SRPConfig;
+  private routines: SRPRoutines;
   private state: SRPServerStateStep = { step: "init" };
-  constructor(config: SRPConfig) {
-    this.config = config;
+
+  constructor(routines: SRPRoutines) {
+    this.routines = routines;
   }
 
   public step1(identifier: string, salt: bigint, verifier: bigint) {
@@ -33,9 +34,14 @@ export class SRPServerSession {
       throw new Error("step1 not from init");
     }
 
-    const b = this.config.routines.generatePrivateValue();
-    const k = this.config.routines.computeK();
-    const B = computeServerPublicValue(this.config.parameters, k, verifier, b);
+    const b = this.routines.generatePrivateValue();
+    const k = this.routines.computeK();
+    const B = computeServerPublicValue(
+      this.routines.parameters,
+      k,
+      verifier,
+      b,
+    );
     this.state = {
       step: "1",
       identifier,
@@ -56,7 +62,7 @@ export class SRPServerSession {
       throw new Error("Client public value (A) must not be null");
     }
 
-    if (!this.config.routines.isValidPublicValue(A)) {
+    if (!this.routines.isValidPublicValue(A)) {
       throw new Error(`Invalid Client public value (A): ${A.toString(16)}`);
     }
 
@@ -66,16 +72,16 @@ export class SRPServerSession {
       throw new Error("Client evidence (M1) must not be null");
     }
 
-    const u = this.config.routines.computeU(A, B);
+    const u = this.routines.computeU(A, B);
     const S = computeServerSessionKey(
-      this.config.parameters.N,
+      this.routines.parameters.N,
       verifier,
       u,
       A,
       b,
     );
 
-    const computedM1 = this.config.routines.computeClientEvidence(
+    const computedM1 = this.routines.computeClientEvidence(
       identifier,
       salt,
       A,
@@ -87,7 +93,7 @@ export class SRPServerSession {
       throw new Error("Bad client credentials");
     }
 
-    const M2 = this.config.routines.computeServerEvidence(A, M1, S);
+    const M2 = this.routines.computeServerEvidence(A, M1, S);
 
     this.state = { step: "2" };
     return M2;
