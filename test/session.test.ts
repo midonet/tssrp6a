@@ -165,7 +165,6 @@ test("#SRPSessionGetters success (set values)", (t) => {
   session.S = generateRandomBigInteger();
 
   t.doesNotThrow(() => session.S);
-  t.equals(session.sharedKey, session.S);
   t.true(
     session.hashedSharedKey.equals(
       wordArrayToBigInteger(
