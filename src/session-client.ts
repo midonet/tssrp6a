@@ -1,9 +1,21 @@
 import { SRPRoutines } from "./routines";
 import { HashWordArray } from "./utils";
 
+// Variable names match the RFC (I, IH, S, b, B, salt, b, A, M1, M2...)
+
 export class SRPClientSession {
   constructor(private readonly routines: SRPRoutines) {}
-  public step1(userId: string, userPassword: string): SRPClientSessionStep1 {
+
+  public step1(
+    /**
+     * User identity
+     */
+    userId: string,
+    /**
+     * User password (not kept in state)
+     */
+    userPassword: string,
+  ): SRPClientSessionStep1 {
     if (!userId || !userId.trim()) {
       throw new Error("User identity must not be null nor empty");
     }
@@ -19,10 +31,26 @@ export class SRPClientSession {
 class SRPClientSessionStep1 {
   constructor(
     private readonly routines: SRPRoutines,
+    /**
+     * User identity
+     */
     private readonly I: string,
+    /**
+     * User identity/password hash
+     */
     public readonly IH: HashWordArray,
   ) {}
-  public step2(salt: bigint, B: bigint): SRPClientSessionStep2 {
+
+  public step2(
+    /**
+     * Some generated salt (see createVerifierAndSalt)
+     */
+    salt: bigint,
+    /**
+     * Server public key "B"
+     */
+    B: bigint,
+  ): SRPClientSessionStep2 {
     if (!salt) {
       throw new Error("Salt (s) must not be null");
     }
@@ -46,10 +74,20 @@ class SRPClientSessionStep1 {
 class SRPClientSessionStep2 {
   constructor(
     private readonly routines: SRPRoutines,
+    /**
+     * Client public value "A"
+     */
     public readonly A: bigint,
+    /**
+     * Client evidence message "M1"
+     */
     public readonly M1: bigint,
+    /**
+     * Shared session key "S"
+     */
     public readonly S: bigint,
   ) {}
+
   public step3(M2: bigint): void {
     if (!M2) {
       throw new Error("Server evidence (M2) must not be null");
