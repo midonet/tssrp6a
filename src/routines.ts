@@ -20,15 +20,7 @@ import {
  */
 
 export class SRPRoutines {
-  private _parameters: SRPParameters;
-
-  constructor(parameters: SRPParameters) {
-    this._parameters = parameters;
-  }
-
-  get parameters(): SRPParameters {
-    return this._parameters;
-  }
+  constructor(public readonly parameters: SRPParameters) {}
 
   public hash(...as: HashWordArray[]): HashWordArray {
     return hash(this.parameters, ...as);
