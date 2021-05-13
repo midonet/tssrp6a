@@ -2,10 +2,25 @@ import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 
+// Variable names match the RFC (I, IH, S, b, B, salt, b, A, M1, M2...)
+
 export class SRPServerSession {
   constructor(private readonly routines: SRPRoutines) {}
 
-  public step1(identifier: string, salt: bigint, verifier: bigint) {
+  public step1(
+    /**
+     * User identity
+     */
+    identifier: string,
+    /**
+     * User salt
+     */
+    salt: bigint,
+    /**
+     * User verifier
+     */
+    verifier: bigint,
+  ) {
     const b = this.routines.generatePrivateValue();
     const k = this.routines.computeK();
     const B = computeServerPublicValue(
@@ -28,17 +43,37 @@ export class SRPServerSession {
 class SRPServerSessionStep1 {
   constructor(
     public readonly routines: SRPRoutines,
+    /**
+     * User identity
+     */
     private readonly identifier: string,
+    /**
+     * User salt
+     */
     private readonly salt: bigint,
+    /**
+     * User verifier
+     */
     private readonly verifier: bigint,
+    /**
+     * Server private key "b"
+     */
     private readonly b: bigint,
+    /**
+     * Serve public key "B"
+     */
     public readonly B: bigint,
   ) {}
 
   /**
    * Compute the session key "S" without computing or checking client evidence
    */
-  public sessionKey(A: bigint): bigint {
+  public sessionKey(
+    /**
+     * Client public key "A"
+     */
+    A: bigint,
+  ): bigint {
     if (A === null) {
       throw new Error("Client public value (A) must not be null");
     }
@@ -58,7 +93,16 @@ class SRPServerSessionStep1 {
     return S;
   }
 
-  public step2(A: bigint, M1: bigint) {
+  public step2(
+    /**
+     * Client public key "A"
+     */
+    A: bigint,
+    /**
+     * Client message "M1"
+     */
+    M1: bigint,
+  ) {
     if (!M1) {
       throw new Error("Client evidence (M1) must not be null");
     }
