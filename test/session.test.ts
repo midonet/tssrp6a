@@ -1,6 +1,5 @@
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
-import { SRPSession } from "../src/session";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
 import {
@@ -19,7 +18,7 @@ const ONE = BigInt(1);
 
 const TestRoutines = new SRPRoutines(new SRPParameters());
 
-class TestSRPSession extends SRPSession {
+class TestSRPSession extends SRPClientSession {
   constructor(timeoutMillis?: number) {
     super(TestRoutines, timeoutMillis);
   }

@@ -1,5 +1,4 @@
 import { SRPRoutines } from "./routines";
-import { SRPSession } from "./session";
 import { HashWordArray } from "./utils";
 
 export enum SRPClientSessionState {
@@ -14,11 +13,16 @@ export interface ISRPClientCredentials {
   M1: bigint;
 }
 
-export class SRPClientSession extends SRPSession {
+export class SRPClientSession {
   /**
-   * Current client auth state
+   * SRPRoutines with SRPParameters used in this session.
    */
-  protected stateStep: SRPClientSessionState;
+  private _routines: SRPRoutines;
+
+  /**
+   * Shared session key "S"
+   */
+  private _S?: bigint;
 
   /**
    * User identity
@@ -40,9 +44,31 @@ export class SRPClientSession extends SRPSession {
    */
   private _M1?: bigint;
 
-  constructor(routines: SRPRoutines, timeoutMillis?: number) {
-    super(routines, timeoutMillis);
+  /**
+   * Number of milliseconds between session activity before timing out this
+   * session.
+   */
+  private _timeoutMillis?: number;
 
+  /**
+   * Id of timer used for expiration timeout.
+   */
+  private _timeoutId: any;
+
+  /**
+   * Boolean determining if this session has timed out.
+   */
+  private _timedOut: boolean;
+
+  /**
+   * Current client auth state
+   */
+  protected stateStep: SRPClientSessionState;
+
+  constructor(routines: SRPRoutines, timeoutMillis?: number) {
+    this._routines = routines;
+    this._timeoutMillis = timeoutMillis;
+    this._timedOut = false;
     this.stateStep = SRPClientSessionState.INIT;
   }
 
@@ -123,6 +149,47 @@ export class SRPClientSession extends SRPSession {
     return this.stateStep;
   }
 
+  get S(): bigint {
+    if (this._S) {
+      return this._S;
+    }
+
+    throw new Error("Shared Key (S) not set");
+  }
+
+  set S(S: bigint) {
+    if (this._S) {
+      throw new Error(`Shared key (S) already set: ${this._S.toString(16)}`);
+    }
+
+    this._S = S;
+  }
+
+  get hashedSharedKey(): bigint {
+    return this.routines.hashAsBigInt(this.S);
+  }
+
+  get routines(): SRPRoutines {
+    return this._routines;
+  }
+
+  protected _throwOnTimeout() {
+    if (this._timedOut) {
+      throw new Error("Session timeout");
+    }
+  }
+
+  protected _registerActivity(): void {
+    if (this._timeoutMillis && !this._timedOut) {
+      if (this._timeoutId) {
+        clearTimeout(this._timeoutId);
+      }
+
+      this._timeoutId = setTimeout(() => {
+        this._timedOut = true;
+      }, this._timeoutMillis);
+    }
+  }
   get I(): string {
     if (this._I) {
       return this._I;
