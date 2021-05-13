@@ -113,8 +113,5 @@ const computeServerSessionKey = (
   A: BigInteger,
   b: BigInteger,
 ): BigInteger => {
-  return v
-    .modPow(u, N)
-    .multiply(A)
-    .modPow(b, N);
+  return v.modPow(u, N).multiply(A).modPow(b, N);
 };

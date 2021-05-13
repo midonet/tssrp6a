@@ -151,9 +151,7 @@ export class SRPClientSession extends SRPSession {
   set identityHash(identityHash: HashWordArray) {
     if (identityHash.sigBytes << 3 !== this.config.parameters.HBits) {
       throw new Error(
-        `Hash array must have correct size in bits: ${
-          this.config.parameters.HBits
-        }`,
+        `Hash array must have correct size in bits: ${this.config.parameters.HBits}`,
       );
     }
     if (this._IH) {
@@ -206,9 +204,7 @@ export class SRPClientSession extends SRPSession {
   private _expectState(state: SRPClientSessionState): void {
     if (this.state !== state) {
       throw new Error(
-        `State violation: Session must be in ${state} state but is in ${
-          this.state
-        }`,
+        `State violation: Session must be in ${state} state but is in ${this.state}`,
       );
     }
   }
