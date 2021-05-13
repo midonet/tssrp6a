@@ -35,19 +35,16 @@ class SRPServerSessionStep1 {
     public readonly B: bigint,
   ) {}
 
-  public step2(A: bigint, M1: bigint) {
+  /**
+   * Compute the session key "S" without computing or checking client evidence
+   */
+  public sessionKey(A: bigint): bigint {
     if (A === null) {
       throw new Error("Client public value (A) must not be null");
     }
 
     if (!this.routines.isValidPublicValue(A)) {
       throw new Error(`Invalid Client public value (A): ${A.toString(16)}`);
-    }
-
-    // const { identifier, salt, verifier, b, B } = this.state;
-
-    if (!M1) {
-      throw new Error("Client evidence (M1) must not be null");
     }
 
     const u = this.routines.computeU(A, this.B);
@@ -58,6 +55,15 @@ class SRPServerSessionStep1 {
       A,
       this.b,
     );
+    return S;
+  }
+
+  public step2(A: bigint, M1: bigint) {
+    if (!M1) {
+      throw new Error("Client evidence (M1) must not be null");
+    }
+
+    const S = this.sessionKey(A);
 
     const computedM1 = this.routines.computeClientEvidence(
       this.identifier,
