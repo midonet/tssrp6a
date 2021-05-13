@@ -1,4 +1,3 @@
-import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
@@ -42,15 +41,11 @@ test("#SRP6aRFC5054", (t) => {
   }
 
   const clientRoutines = new TestClientRoutines(parameters);
-  const clientConfig = new SRPConfig(parameters, (_) => clientRoutines);
 
-  const serverConfig = new SRPConfig(
-    parameters,
-    (p) => new TestServerRoutines(p),
-  );
+  const serverRoutines = new TestServerRoutines(parameters);
 
   const salt = BigInt("0xBEB25379D1A8581EB5A727673A2441EE");
-  const verifier = createVerifier(clientConfig, username, salt, password);
+  const verifier = createVerifier(clientRoutines, username, salt, password);
 
   t.equals(
     "7556aa045aef2cdd07abaf0f665c3e818913186f",
@@ -67,10 +62,10 @@ test("#SRP6aRFC5054", (t) => {
     "7e273de8696ffc4f4e337d05b4b375beb0dde1569e8fa00a9886d8129bada1f1822223ca1a605b530e379ba4729fdc59f105b4787e5186f5c671085a1447b52a48cf1970b4fb6f8400bbf4cebfbb168152e08ab5ea53d15c1aff87b2b9da6e04e058ad51cc72bfc9033b564e26480d78e955a5e29e7ab245db2be315e2099afb",
     "Verifier",
   );
-  const client = new SRPClientSession(clientConfig);
+  const client = new SRPClientSession(clientRoutines);
   client.step1(username, password);
 
-  const server = new SRPServerSession(serverConfig);
+  const server = new SRPServerSession(serverRoutines);
   const B = server.step1(username, salt, verifier);
   const { A, M1 } = client.step2(salt, B);
   t.equals(

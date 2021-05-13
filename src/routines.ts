@@ -141,5 +141,3 @@ export class SRPRoutines {
     return modPow(B - tmp, exp, this.parameters.N);
   }
 }
-
-export type SRPRoutinesFactory = (params: SRPParameters) => SRPRoutines;

@@ -1,4 +1,4 @@
-import { SRPConfig } from "./config";
+import { SRPRoutines } from "./routines";
 import { SRPSession } from "./session";
 import { HashWordArray } from "./utils";
 
@@ -40,8 +40,8 @@ export class SRPClientSession extends SRPSession {
    */
   private _M1?: bigint;
 
-  constructor(config: SRPConfig, timeoutMillis?: number) {
-    super(config, timeoutMillis);
+  constructor(routines: SRPRoutines, timeoutMillis?: number) {
+    super(routines, timeoutMillis);
 
     this.stateStep = SRPClientSessionState.INIT;
   }
@@ -57,10 +57,7 @@ export class SRPClientSession extends SRPSession {
     }
 
     this.I = userId;
-    this.identityHash = this.config.routines.computeIdentityHash(
-      userId,
-      userPassword,
-    );
+    this.identityHash = this.routines.computeIdentityHash(userId, userPassword);
     this.stateStep = SRPClientSessionState.STEP_1;
     this._registerActivity();
   }
@@ -77,15 +74,19 @@ export class SRPClientSession extends SRPSession {
       throw new Error("Public server value (B) must not be null");
     }
 
-    const routines = this.config.routines;
-
-    const x = routines.computeXStep2(salt, this.identityHash);
-    const a = routines.generatePrivateValue();
-    this.A = routines.computeClientPublicValue(a);
-    const k = routines.computeK();
-    const u = routines.computeU(this.A, B);
-    this.S = routines.computeClientSessionKey(k, x, u, a, B);
-    this.M1 = routines.computeClientEvidence(this.I, salt, this.A, B, this.S);
+    const x = this.routines.computeXStep2(salt, this.identityHash);
+    const a = this.routines.generatePrivateValue();
+    this.A = this.routines.computeClientPublicValue(a);
+    const k = this.routines.computeK();
+    const u = this.routines.computeU(this.A, B);
+    this.S = this.routines.computeClientSessionKey(k, x, u, a, B);
+    this.M1 = this.routines.computeClientEvidence(
+      this.I,
+      salt,
+      this.A,
+      B,
+      this.S,
+    );
 
     this.stateStep = SRPClientSessionState.STEP_2;
     this._registerActivity();
@@ -104,7 +105,7 @@ export class SRPClientSession extends SRPSession {
       throw new Error("Server evidence (M2) must not be null");
     }
 
-    const computedM2 = this.config.routines.computeServerEvidence(
+    const computedM2 = this.routines.computeServerEvidence(
       this.A,
       this.M1,
       this.S,
@@ -147,9 +148,9 @@ export class SRPClientSession extends SRPSession {
   }
 
   set identityHash(identityHash: HashWordArray) {
-    if (identityHash.sigBytes << 3 !== this.config.parameters.HBits) {
+    if (identityHash.sigBytes << 3 !== this.routines.parameters.HBits) {
       throw new Error(
-        `Hash array must have correct size in bits: ${this.config.parameters.HBits}`,
+        `Hash array must have correct size in bits: ${this.routines.parameters.HBits}`,
       );
     }
     if (this._IH) {
@@ -174,7 +175,7 @@ export class SRPClientSession extends SRPSession {
       );
     }
 
-    if (!this.config.routines.isValidPublicValue(A)) {
+    if (!this.routines.isValidPublicValue(A)) {
       throw new Error(`Bad client public value (A): ${A.toString(16)}`);
     }
 

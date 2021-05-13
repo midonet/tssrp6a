@@ -1,4 +1,3 @@
-import { SRPConfig } from "../src/config";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
@@ -19,13 +18,13 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", (
     }
   }
 
-  const config = new SRPConfig(new SRPParameters(), (p) => new TestRoutines(p));
+  const routines = new TestRoutines(new SRPParameters());
 
   const testUsername = "peppapig";
   const testPassword = "edge00044bc49a26"; // problematic as reported by https://midobugs.atlassian.net/browse/ISS-325
 
   const salt = BigInt("99830900279124036031422484022515311814");
-  const verifier = createVerifier(config, testUsername, salt, testPassword);
+  const verifier = createVerifier(routines, testUsername, salt, testPassword);
 
   const verifierExpected = BigInt(
     "178562055003946915616288416183950560880175291647374906172196005828739793423130057138448557472796429057819212014" +
@@ -37,10 +36,10 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", (
   );
   t.equals(verifier, verifierExpected, "Verifier is correct");
 
-  const server = new SRPServerSession(config);
+  const server = new SRPServerSession(routines);
   const B = server.step1(testUsername, salt, verifier);
 
-  const client = new SRPClientSession(config);
+  const client = new SRPClientSession(routines);
   client.step1(testUsername, testPassword);
   const { A, M1 } = client.step2(salt, B);
   const expectedM1 =
@@ -82,15 +81,9 @@ test("#SRPSession compatible with java nimbus JS, U padding", (t) => {
     }
   }
 
-  const clientConfig = new SRPConfig(
-    new SRPParameters(),
-    (p) => new TestClientRoutines(p),
-  );
+  const clientRoutines = new TestClientRoutines(new SRPParameters());
 
-  const serverConfig = new SRPConfig(
-    new SRPParameters(),
-    (p) => new TestServerRoutines(p),
-  );
+  const serverRoutines = new TestServerRoutines(new SRPParameters());
 
   const testUsername = "user";
   const testPassword = "&f-/9?7jT3U4D \\";
@@ -98,16 +91,16 @@ test("#SRPSession compatible with java nimbus JS, U padding", (t) => {
     "33081674800485619995650801836188251000879337624391131289848951752125379121888236652092717126360003661818708360248990081822352063268924653696428493658568011717418914956180057471043464751846465778918425243262008467048986429343651595568678881047775976654627197512062204230795243130927191674850747464604824992829",
   );
   const verifier = createVerifier(
-    clientConfig,
+    clientRoutines,
     testUsername,
     salt,
     testPassword,
   );
 
-  const client = new SRPClientSession(clientConfig);
+  const client = new SRPClientSession(clientRoutines);
   client.step1(testUsername, testPassword);
 
-  const server = new SRPServerSession(serverConfig);
+  const server = new SRPServerSession(serverRoutines);
   const B = server.step1(testUsername, salt, verifier);
 
   const credentials = client.step2(salt, B);

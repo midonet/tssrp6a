@@ -1,7 +1,7 @@
 import * as CryptoJS from "crypto-js";
 
-import { SRPConfig } from "./config";
 import { SRPParameters } from "./parameters";
+import { SRPRoutines } from "./routines";
 
 export type HashWordArray = CryptoJS.LibWordArray;
 
@@ -87,7 +87,7 @@ export function generateRandomBigInt(numBytes: number = 16): bigint {
 }
 
 export function createVerifier(
-  config: SRPConfig,
+  routines: SRPRoutines,
   I: string,
   s: bigint,
   P: string,
@@ -104,8 +104,6 @@ export function createVerifier(
     throw new Error("Password (P) must not be null");
   }
 
-  const routines = config.routines;
-
   const x = routines.computeX(I, s, P);
 
   return routines.computeVerifier(x);
@@ -117,16 +115,16 @@ export interface IVerifierAndSalt {
 }
 
 export function createVerifierAndSalt(
-  config: SRPConfig,
+  routines: SRPRoutines,
   I: string,
   P: string,
   sBytes?: number,
 ): IVerifierAndSalt {
-  const s = config.routines.generateRandomSalt(sBytes);
+  const s = routines.generateRandomSalt(sBytes);
 
   return {
     s,
-    v: createVerifier(config, I, s, P),
+    v: createVerifier(routines, I, s, P),
   };
 }
 
