@@ -175,5 +175,5 @@ function setByte(array: HashWordArray, idx: number, byteValue: number): void {
 
 const generateRandom = (numBytes: number): HashWordArray => {
   // TODO: fix type of this function in @types/crypto-js
-  return (CryptoJS.lib.WordArray.random(numBytes) as any) as HashWordArray;
+  return CryptoJS.lib.WordArray.random(numBytes) as any as HashWordArray;
 };
