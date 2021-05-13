@@ -26,20 +26,16 @@ export class SRPParameters {
     RIPEMD160: HashingAlgorithm;
   };
 
-  private _N: bigint;
-  private _NBits: number;
-  private _g: bigint;
-  private _H: CryptoJS.Hasher;
-  private _HBits: number;
+  public readonly NBits: number;
+  public readonly H: any;
+  public readonly HBits: number;
 
   constructor(
-    N: bigint = SRPParameters.N[2048],
-    g: bigint = SRPParameters.g,
+    public readonly N: bigint = SRPParameters.N[2048],
+    public readonly g: bigint = SRPParameters.g,
     H: HashingAlgorithm = SRPParameters.H.SHA512,
   ) {
-    this._N = N;
-    this._NBits = this._N.toString(2).length;
-    this._g = g;
+    this.NBits = this.N.toString(2).length;
 
     const hasher = CryptoJS.algo[H];
 
@@ -47,29 +43,9 @@ export class SRPParameters {
       throw new Error("Unknown hash function");
     }
 
-    this._H = hasher.create();
+    this.H = hasher.create();
     // Calculate size of hash output
-    this._HBits = hashBitCount(this);
-  }
-
-  get N(): bigint {
-    return this._N;
-  }
-
-  get NBits(): number {
-    return this._NBits;
-  }
-
-  get g(): bigint {
-    return this._g;
-  }
-
-  get H(): any {
-    return this._H;
-  }
-
-  get HBits(): number {
-    return this._HBits;
+    this.HBits = hashBitCount(this);
   }
 }
 
