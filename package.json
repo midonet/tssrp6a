@@ -20,8 +20,6 @@
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
     "eslint": "^7.26.0",
-    "husky": "^2.1.0",
-    "lint-staged": "^8.1.5",
     "nyc": "15.1.0",
     "prettier": "^1.17.0",
     "source-map-support": "^0.5.19",
@@ -37,21 +35,10 @@
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts",
     "coverage": "yarn nyc yarn test:report",
-    "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint-staged"
-    }
-  },
-  "lint-staged": {
-    "linters": {
-      "*.{ts,tsx}": [
-        "yarn prettier --write",
-        "yarn eslint src test --fix",
-        "git add"
-      ]
-    }
+    "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report",
+    "lint_formatter": "prettier -c 'src/**' 'test/**'",
+    "lint": "yarn lint_formatter && yarn eslint src test",
+    "format": "prettier --write 'src/**' 'test/**'"
   },
   "description": "SRP6a client and server lib",
   "repository": "git@github.com:midokura/platform-frontend.git",
