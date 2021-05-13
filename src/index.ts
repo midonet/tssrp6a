@@ -1,6 +1,6 @@
 export { SRPParameters } from "./parameters";
 export { SRPRoutines } from "./routines";
-export { SRPClientSession, ISRPClientCredentials } from "./session-client";
+export { SRPClientSession } from "./session-client";
 export { SRPServerSession } from "./session-server";
 export {
   createVerifierAndSalt,
