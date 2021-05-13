@@ -2,38 +2,10 @@ import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 
-type SRPServerStateStep =
-  | ISRPServerStateStepInit
-  | ISRPServerStateStep1
-  | ISRPServerStateStep2;
-interface ISRPServerStateStepInit {
-  step: "init";
-}
-interface ISRPServerStateStep1 {
-  step: "1";
-  identifier: string;
-  salt: bigint;
-  verifier: bigint;
-  b: bigint;
-  B: bigint;
-}
-interface ISRPServerStateStep2 {
-  step: "2";
-}
-
 export class SRPServerSession {
-  private routines: SRPRoutines;
-  private state: SRPServerStateStep = { step: "init" };
-
-  constructor(routines: SRPRoutines) {
-    this.routines = routines;
-  }
+  constructor(private readonly routines: SRPRoutines) {}
 
   public step1(identifier: string, salt: bigint, verifier: bigint) {
-    if (this.state.step !== "init") {
-      throw new Error("step1 not from init");
-    }
-
     const b = this.routines.generatePrivateValue();
     const k = this.routines.computeK();
     const B = computeServerPublicValue(
@@ -42,22 +14,28 @@ export class SRPServerSession {
       verifier,
       b,
     );
-    this.state = {
-      step: "1",
+    return new SRPServerSessionStep1(
+      this.routines,
       identifier,
       salt,
       verifier,
       b,
       B,
-    };
-    return B;
+    );
   }
+}
+
+class SRPServerSessionStep1 {
+  constructor(
+    public readonly routines: SRPRoutines,
+    private readonly identifier: string,
+    private readonly salt: bigint,
+    private readonly verifier: bigint,
+    private readonly b: bigint,
+    public readonly B: bigint,
+  ) {}
 
   public step2(A: bigint, M1: bigint) {
-    if (this.state.step !== "1") {
-      throw new Error("step2 not from step1");
-    }
-
     if (A === null) {
       throw new Error("Client public value (A) must not be null");
     }
@@ -66,26 +44,26 @@ export class SRPServerSession {
       throw new Error(`Invalid Client public value (A): ${A.toString(16)}`);
     }
 
-    const { identifier, salt, verifier, b, B } = this.state;
+    // const { identifier, salt, verifier, b, B } = this.state;
 
     if (!M1) {
       throw new Error("Client evidence (M1) must not be null");
     }
 
-    const u = this.routines.computeU(A, B);
+    const u = this.routines.computeU(A, this.B);
     const S = computeServerSessionKey(
       this.routines.parameters.N,
-      verifier,
+      this.verifier,
       u,
       A,
-      b,
+      this.b,
     );
 
     const computedM1 = this.routines.computeClientEvidence(
-      identifier,
-      salt,
+      this.identifier,
+      this.salt,
       A,
-      B,
+      this.B,
       S,
     );
 
@@ -95,7 +73,6 @@ export class SRPServerSession {
 
     const M2 = this.routines.computeServerEvidence(A, M1, S);
 
-    this.state = { step: "2" };
     return M2;
   }
 }

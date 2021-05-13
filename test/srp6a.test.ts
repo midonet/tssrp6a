@@ -34,21 +34,26 @@ test("#SRP6aSession success", (t) => {
   );
 
   // Sign in
-  const srp6aClient = new SRPClientSession(srp6aRoutines);
-  srp6aClient.step1(testUsername, testPassword);
+  const srp6aClient = new SRPClientSession(srp6aRoutines).step1(
+    testUsername,
+    testPassword,
+  );
 
-  const server = new SRPServerSession(srp6aRoutines);
   // server gets identifier from client, salt+verifier from db (from signup)
-  const B = server.step1(testUsername, salt, verifier);
+  const server = new SRPServerSession(srp6aRoutines).step1(
+    testUsername,
+    salt,
+    verifier,
+  );
 
   // client gets challenge B from server step1 and sends prove M1 to server
-  const { A, M1 } = srp6aClient.step2(salt, B);
+  const srp6aClient_step2 = srp6aClient.step2(salt, server.B);
 
   // servers checks client prove M1 and sends server prove M2 to client
-  const M2 = server.step2(A, M1);
+  const M2 = server.step2(srp6aClient_step2.A, srp6aClient_step2.M1);
 
   // client ensures server identity
-  srp6aClient.step3(M2);
+  srp6aClient_step2.step3(M2);
   t.pass(`user:${testUsername}, password:${testPassword}, salt: ${salt}`);
 });
 
@@ -68,15 +73,20 @@ test("#SRP6aSession config mismatch", (t) => {
   );
 
   // Sign in
-  const defaultClient = new SRPClientSession(defaultRoutines);
-  defaultClient.step1(testUsername, testPassword);
+  const defaultClient = new SRPClientSession(defaultRoutines).step1(
+    testUsername,
+    testPassword,
+  );
 
   // server gets identifier from client, salt+verifier from db (from signup)
-  const serverSession = new SRPServerSession(srp6aRoutines);
-  const B = serverSession.step1(testUsername, salt, verifier);
+  const serverSession = new SRPServerSession(srp6aRoutines).step1(
+    testUsername,
+    salt,
+    verifier,
+  );
 
   // client gets challenge B from server step1 and sends prove M1 to server
-  const { A, M1 } = defaultClient.step2(salt, B);
+  const { A, M1 } = defaultClient.step2(salt, serverSession.B);
 
   t.throws(() => serverSession.step2(A, M1), /bad client credentials/i);
 });

@@ -39,10 +39,6 @@ export class SRPRoutines {
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
-  public hashAsBigInt(key: bigint): bigint {
-    return wordArrayToBigInt(this.hash(bigIntegerToWordArray(key)));
-  }
-
   public computeK(): bigint {
     return wordArrayToBigInt(
       this.hashPadded(

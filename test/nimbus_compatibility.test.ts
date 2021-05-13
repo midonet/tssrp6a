@@ -36,12 +36,16 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", (
   );
   t.equals(verifier, verifierExpected, "Verifier is correct");
 
-  const server = new SRPServerSession(routines);
-  const B = server.step1(testUsername, salt, verifier);
+  const server = new SRPServerSession(routines).step1(
+    testUsername,
+    salt,
+    verifier,
+  );
 
-  const client = new SRPClientSession(routines);
-  client.step1(testUsername, testPassword);
-  const { A, M1 } = client.step2(salt, B);
+  const client = new SRPClientSession(routines)
+    .step1(testUsername, testPassword)
+    .step2(salt, server.B);
+  const { A, M1 } = client;
   const expectedM1 =
     "1065592601292658505437124973230696132224053916269139221074815217157714371589931041709024714121209539819670742161" +
     "3994973526242913119722902651388367081536560";
@@ -97,19 +101,24 @@ test("#SRPSession compatible with java nimbus JS, U padding", (t) => {
     testPassword,
   );
 
-  const client = new SRPClientSession(clientRoutines);
-  client.step1(testUsername, testPassword);
+  const client = new SRPClientSession(clientRoutines).step1(
+    testUsername,
+    testPassword,
+  );
 
-  const server = new SRPServerSession(serverRoutines);
-  const B = server.step1(testUsername, salt, verifier);
+  const server = new SRPServerSession(serverRoutines).step1(
+    testUsername,
+    salt,
+    verifier,
+  );
 
-  const credentials = client.step2(salt, B);
-  const M2 = server.step2(credentials.A, credentials.M1);
+  const client_step2 = client.step2(salt, server.B);
+  const M2 = server.step2(client_step2.A, client_step2.M1);
 
-  client.step3(M2);
+  client_step2.step3(M2);
   t.equals(
     "2759786156664756072640278575111874574304060549707482205494963646655745314302865326281653575240346585867491337174681016141602019474625413612989498308953791169704235345617159889779670194297227661696799560644134207869814438298471533972806431490780438591925780328288881767409814368862177110254785293445114457543719806122296442038029148051000788112414952275196156708046115841664185732743939170543650504827250376106595648546313183003760163749992435120969971921117445460702560169050231954058404706497051470504548923152728722289432905298749321685931674824875086408493662721387058477360406381670834051583796403729153576148296",
-    client.S.toString(),
+    client_step2.S.toString(),
     "Session key is correct",
   );
 });
