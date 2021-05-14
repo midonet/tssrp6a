@@ -1,4 +1,3 @@
-import { hashBitCount } from "./utils";
 import * as crypto from "crypto";
 
 export interface PrimeGroup {
@@ -14,7 +13,6 @@ export class SRPParameters {
   public static H: { [key: string]: HashFunction };
 
   public readonly NBits: number;
-  public readonly HBits: number;
 
   constructor(
     public readonly primeGroup: PrimeGroup = SRPParameters.PrimeGroup[2048],
@@ -25,9 +23,6 @@ export class SRPParameters {
     if (!H) {
       throw new Error("Hash function required");
     }
-
-    // Calculate size of hash output
-    this.HBits = hashBitCount(this); // TODO fix this, it will have to be async
   }
 }
 
