@@ -1,14 +1,6 @@
 import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
-import {
-  bigIntegerToWordArray,
-  generateRandomBigInt,
-  hash,
-  hashPadded,
-  HashWordArray,
-  stringToWordArray,
-  wordArrayToBigInt,
-} from "./utils";
+import { generateRandomBigInt } from "./utils";
 
 /**
  * Default routines used for SRP calculation.
@@ -22,22 +14,8 @@ import {
 export class SRPRoutines {
   constructor(public readonly parameters: SRPParameters) {}
 
-  public hash(...as: HashWordArray[]): HashWordArray {
-    return hash(this.parameters, ...as);
-  }
-
-  public hashPadded(...as: HashWordArray[]): HashWordArray {
-    const targetLength = Math.trunc((this.parameters.NBits + 7) / 8);
-    return hashPadded(this.parameters, targetLength, ...as);
-  }
-
   public computeK(): bigint {
-    return wordArrayToBigInt(
-      this.hashPadded(
-        bigIntegerToWordArray(this.parameters.N),
-        bigIntegerToWordArray(this.parameters.g),
-      ),
-    );
+    return this.parameters.hashPadded(this.parameters.N, this.parameters.g);
   }
 
   public generateRandomSalt(numBytes?: number): bigint {
@@ -48,17 +26,16 @@ export class SRPRoutines {
   }
 
   public computeX(I: string, s: bigint, P: string): bigint {
-    return wordArrayToBigInt(
-      this.hash(bigIntegerToWordArray(s), this.computeIdentityHash(I, P)),
-    );
+    const identityHash: any = this.computeIdentityHash(I, P);
+    return this.parameters.hash(s, identityHash);
   }
 
-  public computeXStep2(s: bigint, identityHash: HashWordArray): bigint {
-    return wordArrayToBigInt(this.hash(bigIntegerToWordArray(s), identityHash));
+  public computeXStep2(s: bigint, identityHash: unknown): bigint {
+    return this.parameters.hash(s, identityHash);
   }
 
-  public computeIdentityHash(_: string, P: string): HashWordArray {
-    return this.hash(stringToWordArray(P));
+  public computeIdentityHash(_: string, P: string): unknown {
+    return this.parameters.hashValue(P);
   }
 
   public computeVerifier(x: bigint): bigint {
@@ -85,9 +62,7 @@ export class SRPRoutines {
   }
 
   public computeU(A: bigint, B: bigint): bigint {
-    return wordArrayToBigInt(
-      this.hashPadded(bigIntegerToWordArray(A), bigIntegerToWordArray(B)),
-    );
+    return this.parameters.hashPadded(A, B);
   }
 
   public computeClientEvidence(
@@ -97,23 +72,11 @@ export class SRPRoutines {
     B: bigint,
     S: bigint,
   ): bigint {
-    return wordArrayToBigInt(
-      this.hash(
-        bigIntegerToWordArray(A),
-        bigIntegerToWordArray(B),
-        bigIntegerToWordArray(S),
-      ),
-    );
+    return this.parameters.hash(A, B, S);
   }
 
   public computeServerEvidence(A: bigint, M1: bigint, S: bigint): bigint {
-    return wordArrayToBigInt(
-      this.hash(
-        bigIntegerToWordArray(A),
-        bigIntegerToWordArray(M1),
-        bigIntegerToWordArray(S),
-      ),
-    );
+    return this.parameters.hash(A, M1, S);
   }
 
   public computeClientSessionKey(

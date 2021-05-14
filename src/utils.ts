@@ -1,9 +1,9 @@
 import * as CryptoJS from "crypto-js";
 
-import { SRPParameters } from "./parameters";
+import { HashingAlgorithm, HashingFn } from "./parameters";
 import { SRPRoutines } from "./routines";
 
-export type HashWordArray = CryptoJS.LibWordArray;
+type HashWordArray = CryptoJS.LibWordArray;
 
 export const bigIntegerToWordArray = (n: bigint): HashWordArray =>
   CryptoJS.enc.Hex.parse(evenLengthHex(n.toString(16)));
@@ -44,22 +44,11 @@ export const padWordArray = (
   return result;
 };
 
-export function hash(
-  parameters: SRPParameters,
-  ...arrays: HashWordArray[]
-): HashWordArray {
-  parameters.H.reset();
-  arrays.forEach((hwa) => parameters.H.update(hwa));
-  return parameters.H.finalize();
-}
-
-export function hashPadded(
-  parameters: SRPParameters,
+export function padHashWordArray(
   targetLen: number,
-  ...arrays: HashWordArray[]
-): HashWordArray {
-  const arraysPadded = arrays.map((hwa) => padWordArray(hwa, targetLen));
-  return hash(parameters, ...arraysPadded);
+  arrays: HashWordArray[],
+): HashWordArray[] {
+  return arrays.map((hwa) => padWordArray(hwa, targetLen));
 }
 
 /**
@@ -128,8 +117,40 @@ export function createVerifierAndSalt(
   };
 }
 
-export const hashBitCount = (parameters: SRPParameters): number =>
-  hash(parameters, bigIntegerToWordArray(BigInt(1))).sigBytes << 3;
+export function cryptoJsHashFnFactory(algo: HashingAlgorithm): HashingFn {
+  // use CryptoJS digest of type `H`
+  const hasher = CryptoJS.algo[algo];
+
+  if (!hasher || !(hasher instanceof (CryptoJS.lib as any).Hasher.init)) {
+    throw new Error("Unknown hash function");
+  }
+
+  const hasherInstance = hasher.create();
+  return (array, pad, as_bigint) => {
+    hasherInstance.reset();
+
+    array.forEach((element: bigint | string | unknown) => {
+      let wordArray =
+        typeof element === "bigint"
+          ? bigIntegerToWordArray(element)
+          : typeof element === "string"
+          ? stringToWordArray(element)
+          : (element as any);
+      if (pad !== false) {
+        wordArray = padWordArray(wordArray, pad);
+      }
+      hasherInstance.update(wordArray);
+    });
+    if (as_bigint) {
+      return wordArrayToBigInt(hasherInstance.finalize());
+    } else {
+      return hasherInstance.finalize();
+    }
+  };
+}
+
+export const hashBitCount = (hasher: HashingFn): number =>
+  bigIntegerToWordArray(hasher([BigInt(1)], false, true)).sigBytes << 3;
 
 // TODO: remove when constructor is exported in @types/crypto-js
 export function createHashWordArray(

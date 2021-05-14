@@ -2,7 +2,7 @@ import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
-import { createVerifier, HashWordArray, stringToWordArray } from "../src/utils";
+import { createVerifier } from "../src/utils";
 import { test } from "./tests";
 
 test("#SRP6aRFC5054", (t) => {
@@ -17,8 +17,8 @@ test("#SRP6aRFC5054", (t) => {
   const password = "password123";
 
   class TestClientRoutines extends SRPRoutines {
-    public computeIdentityHash(I: string, P: string): HashWordArray {
-      return this.hash(stringToWordArray(`${I}:${P}`));
+    public computeIdentityHash(I: string, P: string): bigint {
+      return this.parameters.hash(`${I}:${P}`);
     }
 
     public generatePrivateValue(): bigint {

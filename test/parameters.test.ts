@@ -24,7 +24,7 @@ test("hash bit count", (t) => {
       BigInt([2]),
       SRPParameters.H[key],
     );
-    t.equals(expectedBitSize[idx], hashBitCount(parameters), key);
+    t.equals(expectedBitSize[idx], hashBitCount(parameters.H), key);
   });
 });
 

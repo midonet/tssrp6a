@@ -1,8 +1,27 @@
-import * as CryptoJS from "crypto-js";
+import { cryptoJsHashFnFactory, hashBitCount } from "./utils";
 
-import { hashBitCount } from "./utils";
+export type HashingAlgorithm =
+  | "SHA1"
+  | "SHA224"
+  | "SHA256"
+  | "SHA384"
+  | "SHA512"
+  | "SHA3"
+  | "RIPEMD160";
 
-type HashingAlgorithm = keyof typeof SRPParameters.H;
+/**
+ * Hashing function
+ * subjects Array of elements to hash, either a bigint, a string (user name or
+ *   password), or whatever the algorithm's internal value is.
+ * padded True if needs to be padded
+ * as_bigint if return value must be bigint, or if it must be the algorithm's
+ *   internal value type.
+ */
+export type HashingFn = (
+  subjects: (bigint | string | unknown)[],
+  padded: number | false,
+  as_bigint: boolean,
+) => bigint;
 
 export class SRPParameters {
   public static N: {
@@ -27,25 +46,39 @@ export class SRPParameters {
   };
 
   public readonly NBits: number;
-  public readonly H: any;
+  public readonly H: HashingFn;
   public readonly HBits: number;
 
   constructor(
     public readonly N: bigint = SRPParameters.N[2048],
     public readonly g: bigint = SRPParameters.g,
-    H: HashingAlgorithm = SRPParameters.H.SHA512,
+    /**
+     * Either a CyptoJS digest name like "SHA512" or a custom `HashingFn`
+     */
+    H: HashingAlgorithm | HashingFn = SRPParameters.H.SHA512,
   ) {
     this.NBits = this.N.toString(2).length;
 
-    const hasher = CryptoJS.algo[H];
-
-    if (!hasher || !(hasher instanceof (CryptoJS.lib as any).Hasher.init)) {
-      throw new Error("Unknown hash function");
+    if (typeof H === "function") {
+      this.H = H;
+    } else {
+      this.H = cryptoJsHashFnFactory(H);
     }
-
-    this.H = hasher.create();
     // Calculate size of hash output
-    this.HBits = hashBitCount(this);
+    this.HBits = hashBitCount(this.H);
+  }
+
+  public hash(...array: (bigint | string | unknown)[]): bigint {
+    return this.H(array, false, true);
+  }
+
+  public hashValue(...array: (bigint | string | unknown)[]): any {
+    return this.H(array, false, false);
+  }
+
+  public hashPadded(...array: bigint[]): bigint {
+    const targetLength = Math.trunc((this.NBits + 7) / 8);
+    return this.H(array, targetLength, true);
   }
 }
 

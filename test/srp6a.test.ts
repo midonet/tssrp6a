@@ -2,18 +2,13 @@ import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
-import {
-  createVerifierAndSalt,
-  generateRandomString,
-  HashWordArray,
-  stringToWordArray,
-} from "../src/utils";
+import { createVerifierAndSalt, generateRandomString } from "../src/utils";
 import { test } from "./tests";
 
 const testParameters = new SRPParameters();
 class SRP6aRoutines extends SRPRoutines {
-  public computeIdentityHash(I: string, P: string): HashWordArray {
-    return this.hash(stringToWordArray(`${I}:${P}`));
+  public computeIdentityHash(I: string, P: string): bigint {
+    return this.parameters.hash(`${I}:${P}`);
   }
 }
 const srp6aRoutines = new SRP6aRoutines(testParameters);

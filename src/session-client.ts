@@ -1,5 +1,4 @@
 import { SRPRoutines } from "./routines";
-import { HashWordArray } from "./utils";
 
 export class SRPClientSession {
   constructor(private readonly routines: SRPRoutines) {}
@@ -20,7 +19,7 @@ class SRPClientSessionStep1 {
   constructor(
     private readonly routines: SRPRoutines,
     private readonly I: string,
-    public readonly IH: HashWordArray,
+    public readonly IH: unknown,
   ) {}
   public step2(salt: bigint, B: bigint): SRPClientSessionStep2 {
     if (!salt) {
