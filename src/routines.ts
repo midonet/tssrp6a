@@ -7,6 +7,7 @@ import {
   hashPadded,
   stringToArrayBuffer,
   arrayBufferToBigInt,
+  hashBitCount,
 } from "./utils";
 
 /**
@@ -39,10 +40,11 @@ export class SRPRoutines {
     );
   }
 
-  public generateRandomSalt(numBytes?: number): bigint {
+  public async generateRandomSalt(numBytes?: number): Promise<bigint> {
+    const HBits = await hashBitCount(this.parameters);
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
-    const saltBytes = numBytes || (2 * this.parameters.HBits) / 8; // TODO HBits fix
+    const saltBytes = numBytes || (2 * HBits) / 8; // TODO HBits fix
     return generateRandomBigInt(saltBytes);
   }
 

@@ -30,29 +30,23 @@ export function stringToArrayBuffer(str: string): ArrayBuffer {
 
 /**
  * Left pad ArrayBuffer with zeroes.
- * @param words
+ * @param arrayBuffer - ArrayBuffer to pad
  * @param targetLength Length of the target array in bytes.
  * @returns Padded array or original array if targetLength is less than original
  *          array length.
  */
-export const padWordArray = (
-  // TODO make sure this still works
-  words: ArrayBuffer,
+export const padStartArrayBuffer = (
+  arrayBuffer: ArrayBuffer,
   targetLength: number,
 ): ArrayBuffer => {
-  let result: ArrayBuffer = words;
-  if (targetLength > words.byteLength) {
-    const resultWords: number[] = new Array(ceilDiv4(targetLength)).fill(0);
-    result = createHashWordArray(resultWords, targetLength);
-    for (
-      let dest = targetLength - words.sigBytes, src = 0;
-      src < words.sigBytes;
-      ++src, ++dest
-    ) {
-      setByte(result, dest, getByte(words, src));
-    }
+  const u8 = new Uint8Array(arrayBuffer);
+  if (u8.length < targetLength) {
+    const tmp = new Uint8Array(targetLength);
+    tmp.fill(0, 0, targetLength - u8.length);
+    tmp.set(u8, targetLength - u8.length);
+    return tmp;
   }
-  return result;
+  return u8;
 };
 
 export function hash(
@@ -74,7 +68,7 @@ export function hashPadded(
   ...arrays: ArrayBuffer[]
 ): Promise<ArrayBuffer> {
   const arraysPadded = arrays.map((arrayBuffer) =>
-    padWordArray(arrayBuffer, targetLen),
+    padStartArrayBuffer(arrayBuffer, targetLen),
   );
   return hash(parameters, ...arraysPadded);
 }
@@ -94,12 +88,12 @@ export function generateRandomBigInt(numBytes: number = 16): bigint {
   return arrayBufferToBigInt(generateRandom(numBytes));
 }
 
-export function createVerifier(
+export async function createVerifier(
   routines: SRPRoutines,
   I: string,
   s: bigint,
   P: string,
-): bigint {
+): Promise<bigint> {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -112,7 +106,7 @@ export function createVerifier(
     throw new Error("Password (P) must not be null");
   }
 
-  const x = routines.computeX(I, s, P);
+  const x = await routines.computeX(I, s, P);
 
   return routines.computeVerifier(x);
 }
@@ -122,17 +116,17 @@ export interface IVerifierAndSalt {
   s: bigint;
 }
 
-export function createVerifierAndSalt(
+export async function createVerifierAndSalt(
   routines: SRPRoutines,
   I: string,
   P: string,
   sBytes?: number,
-): IVerifierAndSalt {
-  const s = routines.generateRandomSalt(sBytes);
+): Promise<IVerifierAndSalt> {
+  const s = await routines.generateRandomSalt(sBytes);
 
   return {
     s,
-    v: createVerifier(routines, I, s, P),
+    v: await createVerifier(routines, I, s, P),
   };
 }
 
@@ -140,29 +134,6 @@ export const hashBitCount = async (
   parameters: SRPParameters,
 ): Promise<number> =>
   (await hash(parameters, bigIntToArrayBuffer(BigInt(1)))).byteLength << 3; // TODO make sure this still works
-
-function ceilDiv4(x: number) {
-  return (x + 3) >>> 2;
-}
-
-/**
- * Return the number of bits the byte should be shifted to occupy given position in 4 bytes integer.
- * @param byteNum The number of byte in big endian order. Can be only 0, 1, 2 or 3
- */
-function byteShift(byteNum: number): number {
-  return (3 - byteNum) << 3;
-}
-
-function getByte(array: HashWordArray, idx: number): number {
-  // TODO
-  return (array.words[idx >>> 2] >>> byteShift(idx & 3)) & 0xff;
-}
-
-function setByte(array: HashWordArray, idx: number, byteValue: number): void {
-  // TODO
-  array.words[idx >>> 2] &= ~(0xff << byteShift(idx & 3));
-  array.words[idx >>> 2] |= (byteValue & 0xff) << byteShift(idx & 3);
-}
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);

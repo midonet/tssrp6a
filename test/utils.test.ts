@@ -6,7 +6,7 @@ import {
   createVerifier,
   generateRandomBigInt,
   generateRandomString,
-  padWordArray,
+  padStartArrayBuffer,
   stringToArrayBuffer,
   arrayBufferToBigInt,
 } from "../src/utils";
@@ -145,20 +145,20 @@ test("#paddArray", (t) => {
   const testHashArray = createHashWordArray(words, 12);
   t.equals(
     words,
-    padWordArray(testHashArray, 10).words,
+    padStartArrayBuffer(testHashArray, 10).words,
     "Same array for small target size",
   );
   t.equals(
     words,
-    padWordArray(testHashArray, 12).words,
+    padStartArrayBuffer(testHashArray, 12).words,
     "Same array for small target size",
   );
 
-  const paddedLibArray = padWordArray(testHashArray, 16);
+  const paddedLibArray = padStartArrayBuffer(testHashArray, 16);
   t.equals(4, paddedLibArray.words.length);
   t.deepEqual([0, 1, 2, 3], paddedLibArray.words);
 
-  const paddedLibArray2 = padWordArray(testHashArray, 15);
+  const paddedLibArray2 = padStartArrayBuffer(testHashArray, 15);
   t.equals(15, paddedLibArray2.sigBytes, "Array length is correct");
   t.deepEqual([0, 1 << 8, 2 << 8, 3 << 8], paddedLibArray2.words);
 });
@@ -168,7 +168,7 @@ test("#paddArray 1 byte", (t) => {
   const testHashArray = bigIntToArrayBuffer(ONE);
   t.equal(1, testHashArray.sigBytes);
 
-  const paddedLibArray = padWordArray(testHashArray, 256);
+  const paddedLibArray = padStartArrayBuffer(testHashArray, 256);
   t.equals(256, paddedLibArray.sigBytes);
   const expectedArray = new Array(64).fill(0);
   expectedArray[63] = 1;
