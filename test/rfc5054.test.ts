@@ -2,7 +2,11 @@ import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
-import { createVerifier, HashWordArray, stringToWordArray } from "../src/utils";
+import {
+  createVerifier,
+  HashWordArray,
+  stringToArrayBuffer,
+} from "../src/utils";
 import { test } from "./tests";
 
 test("#SRP6aRFC5054", (t) => {
@@ -18,7 +22,7 @@ test("#SRP6aRFC5054", (t) => {
 
   class TestClientRoutines extends SRPRoutines {
     public computeIdentityHash(I: string, P: string): HashWordArray {
-      return this.hash(stringToWordArray(`${I}:${P}`));
+      return this.hash(stringToArrayBuffer(`${I}:${P}`));
     }
 
     public generatePrivateValue(): bigint {

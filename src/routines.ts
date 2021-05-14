@@ -1,13 +1,13 @@
 import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
 import {
-  bigIntegerToWordArray,
+  bigIntToArrayBuffer,
   generateRandomBigInt,
   hash,
   hashPadded,
   HashWordArray,
-  stringToWordArray,
-  wordArrayToBigInt,
+  stringToArrayBuffer,
+  arrayBufferToBigInt,
 } from "./utils";
 
 /**
@@ -32,10 +32,10 @@ export class SRPRoutines {
   }
 
   public computeK(): bigint {
-    return wordArrayToBigInt(
+    return arrayBufferToBigInt(
       this.hashPadded(
-        bigIntegerToWordArray(this.parameters.N),
-        bigIntegerToWordArray(this.parameters.g),
+        bigIntToArrayBuffer(this.parameters.N),
+        bigIntToArrayBuffer(this.parameters.g),
       ),
     );
   }
@@ -48,17 +48,17 @@ export class SRPRoutines {
   }
 
   public computeX(I: string, s: bigint, P: string): bigint {
-    return wordArrayToBigInt(
-      this.hash(bigIntegerToWordArray(s), this.computeIdentityHash(I, P)),
+    return arrayBufferToBigInt(
+      this.hash(bigIntToArrayBuffer(s), this.computeIdentityHash(I, P)),
     );
   }
 
   public computeXStep2(s: bigint, identityHash: HashWordArray): bigint {
-    return wordArrayToBigInt(this.hash(bigIntegerToWordArray(s), identityHash));
+    return arrayBufferToBigInt(this.hash(bigIntToArrayBuffer(s), identityHash));
   }
 
   public computeIdentityHash(_: string, P: string): HashWordArray {
-    return this.hash(stringToWordArray(P));
+    return this.hash(stringToArrayBuffer(P));
   }
 
   public computeVerifier(x: bigint): bigint {
@@ -85,8 +85,8 @@ export class SRPRoutines {
   }
 
   public computeU(A: bigint, B: bigint): bigint {
-    return wordArrayToBigInt(
-      this.hashPadded(bigIntegerToWordArray(A), bigIntegerToWordArray(B)),
+    return arrayBufferToBigInt(
+      this.hashPadded(bigIntToArrayBuffer(A), bigIntToArrayBuffer(B)),
     );
   }
 
@@ -97,21 +97,21 @@ export class SRPRoutines {
     B: bigint,
     S: bigint,
   ): bigint {
-    return wordArrayToBigInt(
+    return arrayBufferToBigInt(
       this.hash(
-        bigIntegerToWordArray(A),
-        bigIntegerToWordArray(B),
-        bigIntegerToWordArray(S),
+        bigIntToArrayBuffer(A),
+        bigIntToArrayBuffer(B),
+        bigIntToArrayBuffer(S),
       ),
     );
   }
 
   public computeServerEvidence(A: bigint, M1: bigint, S: bigint): bigint {
-    return wordArrayToBigInt(
+    return arrayBufferToBigInt(
       this.hash(
-        bigIntegerToWordArray(A),
-        bigIntegerToWordArray(M1),
-        bigIntegerToWordArray(S),
+        bigIntToArrayBuffer(A),
+        bigIntToArrayBuffer(M1),
+        bigIntToArrayBuffer(S),
       ),
     );
   }

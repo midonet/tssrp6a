@@ -1,36 +1,47 @@
-import * as CryptoJS from "crypto-js";
-
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 
-export type HashWordArray = CryptoJS.LibWordArray;
+export const bigIntToArrayBuffer = (n: bigint): ArrayBuffer => {
+  const hex = n.toString(16);
+  const arrayBuffer = new ArrayBuffer(Math.ceil(hex.length / 2));
+  const u8 = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < arrayBuffer.byteLength; i++) {
+    u8[i] = parseInt(hex.slice(2 * i, 2 * i + 2), 16);
+  }
+  return arrayBuffer;
+};
 
-export const bigIntegerToWordArray = (n: bigint): HashWordArray =>
-  CryptoJS.enc.Hex.parse(evenLengthHex(n.toString(16)));
-
-export const wordArrayToBigInt = (words: HashWordArray): bigint =>
-  BigInt(`0x${CryptoJS.enc.Hex.stringify(words)}`);
+export const arrayBufferToBigInt = (arrayBuffer: ArrayBuffer): bigint => {
+  const hex: string[] = [];
+  // we can't use map here because map will return Uint8Array which will screw up the parsing below
+  new Uint8Array(arrayBuffer).forEach((i) => {
+    hex.push(i.toString(16));
+  });
+  return BigInt(`0x${hex.join("")}`);
+};
 
 /**
- * Convert some string into HashWordArray.
+ * Convert some string into ArrayBuffer.
  * @param str Any UTF8 string, like a username, email, or password
  */
-export function stringToWordArray(str: string): HashWordArray {
-  return CryptoJS.enc.Utf8.parse(str);
+export function stringToArrayBuffer(str: string): ArrayBuffer {
+  return new TextEncoder().encode(str).buffer;
 }
 
 /**
- * Left pad HashWordArray with zeroes.
+ * Left pad ArrayBuffer with zeroes.
+ * @param words
  * @param targetLength Length of the target array in bytes.
  * @returns Padded array or original array if targetLength is less than original
  *          array length.
  */
 export const padWordArray = (
-  words: HashWordArray,
+  // TODO make sure this still works
+  words: ArrayBuffer,
   targetLength: number,
-): HashWordArray => {
-  let result: HashWordArray = words;
-  if (targetLength > words.sigBytes) {
+): ArrayBuffer => {
+  let result: ArrayBuffer = words;
+  if (targetLength > words.byteLength) {
     const resultWords: number[] = new Array(ceilDiv4(targetLength)).fill(0);
     result = createHashWordArray(resultWords, targetLength);
     for (
@@ -46,19 +57,25 @@ export const padWordArray = (
 
 export function hash(
   parameters: SRPParameters,
-  ...arrays: HashWordArray[]
-): HashWordArray {
-  parameters.H.reset();
-  arrays.forEach((hwa) => parameters.H.update(hwa));
-  return parameters.H.finalize();
+  ...arrays: ArrayBuffer[]
+): Promise<ArrayBuffer> {
+  const length = arrays.reduce((p, c) => p + c.byteLength, 0);
+  const target = new Uint8Array(length);
+  for (let offset = 0, i = 0; i < arrays.length; i++) {
+    target.set(new Uint8Array(arrays[i]), offset);
+    offset += arrays[i].byteLength;
+  }
+  return parameters.H(target);
 }
 
 export function hashPadded(
   parameters: SRPParameters,
   targetLen: number,
-  ...arrays: HashWordArray[]
-): HashWordArray {
-  const arraysPadded = arrays.map((hwa) => padWordArray(hwa, targetLen));
+  ...arrays: ArrayBuffer[]
+): Promise<ArrayBuffer> {
+  const arraysPadded = arrays.map((arrayBuffer) =>
+    padWordArray(arrayBuffer, targetLen),
+  );
   return hash(parameters, ...arraysPadded);
 }
 
@@ -67,23 +84,14 @@ export function hashPadded(
  * @param characterCount The length of the result string.
  * @return The string.
  */
-export function generateRandomString(characterCount: number = 10): string {
-  const randomArray = generateRandom(characterCount);
-  for (let i = 0; i < randomArray.sigBytes; ++i) {
-    let asciiChar = getByte(randomArray, i) & 0x7f;
-    if (asciiChar < 32) {
-      asciiChar |= 32;
-    }
-    if (asciiChar === 0x7f) {
-      asciiChar = 0x7e;
-    }
-    setByte(randomArray, i, asciiChar);
-  }
-  return CryptoJS.enc.Utf8.stringify(randomArray);
+export function generateRandomString(characterCount: number = 10) {
+  const u8 = new Uint8Array(characterCount / 2); // each byte has 2 hex digits
+  crypto.getRandomValues(u8);
+  return u8.reduce((str, i) => str + i.toString(16), "");
 }
 
 export function generateRandomBigInt(numBytes: number = 16): bigint {
-  return wordArrayToBigInt(generateRandom(numBytes));
+  return arrayBufferToBigInt(generateRandom(numBytes));
 }
 
 export function createVerifier(
@@ -128,26 +136,10 @@ export function createVerifierAndSalt(
   };
 }
 
-export const hashBitCount = (parameters: SRPParameters): number =>
-  hash(parameters, bigIntegerToWordArray(BigInt(1))).sigBytes << 3;
-
-// TODO: remove when constructor is exported in @types/crypto-js
-export function createHashWordArray(
-  words: number[],
-  sigBytes: number,
-): HashWordArray {
-  const result: HashWordArray = CryptoJS.lib.WordArray.create(words);
-  result.sigBytes = sigBytes;
-  return result;
-}
-
-function evenLengthHex(hex: string): string {
-  if (hex.length % 2 === 1) {
-    return `0${hex}`;
-  } else {
-    return hex;
-  }
-}
+export const hashBitCount = async (
+  parameters: SRPParameters,
+): Promise<number> =>
+  (await hash(parameters, bigIntToArrayBuffer(BigInt(1)))).byteLength << 3; // TODO make sure this still works
 
 function ceilDiv4(x: number) {
   return (x + 3) >>> 2;
@@ -162,15 +154,18 @@ function byteShift(byteNum: number): number {
 }
 
 function getByte(array: HashWordArray, idx: number): number {
+  // TODO
   return (array.words[idx >>> 2] >>> byteShift(idx & 3)) & 0xff;
 }
 
 function setByte(array: HashWordArray, idx: number, byteValue: number): void {
+  // TODO
   array.words[idx >>> 2] &= ~(0xff << byteShift(idx & 3));
   array.words[idx >>> 2] |= (byteValue & 0xff) << byteShift(idx & 3);
 }
 
-const generateRandom = (numBytes: number): HashWordArray => {
-  // TODO: fix type of this function in @types/crypto-js
-  return CryptoJS.lib.WordArray.random(numBytes) as any as HashWordArray;
+const generateRandom = (numBytes: number): ArrayBuffer => {
+  const u8 = new Uint8Array(numBytes);
+  crypto.getRandomValues(u8);
+  return u8.buffer;
 };

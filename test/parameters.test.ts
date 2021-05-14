@@ -1,5 +1,5 @@
 import { SRPParameters } from "../src/parameters";
-import { bigIntegerToWordArray, hashBitCount } from "../src/utils";
+import { bigIntToArrayBuffer, hashBitCount } from "../src/utils";
 import { test } from "./tests";
 
 test("existing hash", (t) => {
@@ -35,9 +35,7 @@ test("Size of N is correct", (t) => {
   const expectedSizeInBytes: number[] = [33, 64, 96, 128, 192, 256];
   const actualSizeInBytes: number[] = new Array(6).fill(0);
   Object.keys(SRPParameters.N).map((key, idx) => {
-    actualSizeInBytes[idx] = bigIntegerToWordArray(
-      SRPParameters.N[key],
-    ).sigBytes;
+    actualSizeInBytes[idx] = bigIntToArrayBuffer(SRPParameters.N[key]).sigBytes;
   });
   actualSizeInBytes.sort((x, y) => x - y);
   t.deepEqual(expectedSizeInBytes, actualSizeInBytes, "N sizes are correct");

@@ -6,14 +6,14 @@ import {
   createVerifierAndSalt,
   generateRandomString,
   HashWordArray,
-  stringToWordArray,
+  stringToArrayBuffer,
 } from "../src/utils";
 import { test } from "./tests";
 
 const testParameters = new SRPParameters();
 class SRP6aRoutines extends SRPRoutines {
   public computeIdentityHash(I: string, P: string): HashWordArray {
-    return this.hash(stringToWordArray(`${I}:${P}`));
+    return this.hash(stringToArrayBuffer(`${I}:${P}`));
   }
 }
 const srp6aRoutines = new SRP6aRoutines(testParameters);

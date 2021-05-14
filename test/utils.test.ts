@@ -1,14 +1,14 @@
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import {
-  bigIntegerToWordArray,
+  bigIntToArrayBuffer,
   createHashWordArray,
   createVerifier,
   generateRandomBigInt,
   generateRandomString,
   padWordArray,
-  stringToWordArray,
-  wordArrayToBigInt,
+  stringToArrayBuffer,
+  arrayBufferToBigInt,
 } from "../src/utils";
 import { test } from "./tests";
 
@@ -31,14 +31,14 @@ test("#toFromBigIntegerConversions", (t) => {
   t.plan(3);
   ["aa11", "baa11", "1"].forEach((n) => {
     const bn = BigInt(`0x${n}`);
-    t.equals(wordArrayToBigInt(bigIntegerToWordArray(bn)), bn, `${n}`);
+    t.equals(arrayBufferToBigInt(bigIntToArrayBuffer(bn)), bn, `${n}`);
   });
 });
 
-test("#stringToWordArray", (t) => {
+test("#stringToArrayBuffer", (t) => {
   t.plan(3);
   const testString = "0123456";
-  const hashArray = stringToWordArray(testString);
+  const hashArray = stringToArrayBuffer(testString);
   const charCodes: number[] = [];
   for (let i = 0; i < testString.length; ++i) {
     charCodes.push(testString.charCodeAt(i));
@@ -58,7 +58,7 @@ test("#stringToWordArray", (t) => {
 
   t.deepLooseEqual(
     { words: [], sigBytes: 0 },
-    stringToWordArray(""),
+    stringToArrayBuffer(""),
     "Empty string, empty array",
   );
 });
@@ -73,29 +73,29 @@ test("#createVerifierHexSalt errors", (t) => {
   t.end();
 });
 
-test("#bigIntegerToWordArray", (t) => {
+test("#bigIntToArrayBuffer", (t) => {
   t.plan(7);
-  let wordArray = bigIntegerToWordArray(ONE);
+  let wordArray = bigIntToArrayBuffer(ONE);
   t.equals(1, wordArray.sigBytes);
   t.equals(1 << 24, wordArray.words[0], "One");
 
-  wordArray = bigIntegerToWordArray(ZERO);
+  wordArray = bigIntToArrayBuffer(ZERO);
   t.equals(1, wordArray.sigBytes);
   t.equals(0, wordArray.words[0], "Zero");
 
   t.deepLooseEqual(
     { words: [0xff << 24], sigBytes: 1 },
-    bigIntegerToWordArray(-ONE),
+    bigIntToArrayBuffer(-ONE),
     "Negative values are partially supported",
   );
 
   const testNumber = BigInt("0x0102");
-  wordArray = bigIntegerToWordArray(testNumber);
+  wordArray = bigIntToArrayBuffer(testNumber);
   t.equals(2, wordArray.sigBytes, "Two bytes in 0x0102");
   t.equals(0x0102 << 16, wordArray.words[0]);
 });
 
-test("#bigIntegerToWordArray 5 bytes number", (t) => {
+test("#bigIntToArrayBuffer 5 bytes number", (t) => {
   t.plan(5);
   const numberHexStr = "7fff7effee";
   const testNumber = BigInt(`0x${numberHexStr}`);
@@ -105,17 +105,17 @@ test("#bigIntegerToWordArray 5 bytes number", (t) => {
     testNumber.toString(16),
     "toString() returns the same string",
   );
-  const wordArray = bigIntegerToWordArray(testNumber);
+  const wordArray = bigIntToArrayBuffer(testNumber);
   t.equals(5, wordArray.sigBytes, `Five bytes in ${numberHexStr}`);
   t.equals(0x7fff7eff, wordArray.words[0], "First word is correct");
   t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
 });
 
-test("#bigIntegerToWordArray 1 byte number", (t) => {
+test("#bigIntToArrayBuffer 1 byte number", (t) => {
   t.plan(2);
   const numberHexStr = "0xff";
   const testNumber = BigInt(numberHexStr);
-  const wordArray = bigIntegerToWordArray(testNumber);
+  const wordArray = bigIntToArrayBuffer(testNumber);
   t.equals(1, wordArray.sigBytes, `One byte in {numberHexStr}`);
   t.equals(
     Number(testNumber) << 24,
@@ -124,7 +124,7 @@ test("#bigIntegerToWordArray 1 byte number", (t) => {
   );
 });
 
-test("#bigIntegerToWordArray 5 bytes number, big byte", (t) => {
+test("#bigIntToArrayBuffer 5 bytes number, big byte", (t) => {
   t.plan(4);
   const numberHexStr = "ffffffffee";
   const testNumber = BigInt(`0x${numberHexStr}`);
@@ -134,7 +134,7 @@ test("#bigIntegerToWordArray 5 bytes number, big byte", (t) => {
     testNumber.toString(16),
     "toString() returns the same string",
   );
-  const wordArray = bigIntegerToWordArray(testNumber);
+  const wordArray = bigIntToArrayBuffer(testNumber);
   t.equals(5, wordArray.sigBytes, `Five bytes in ${numberHexStr}`);
   t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
 });
@@ -165,7 +165,7 @@ test("#paddArray", (t) => {
 
 test("#paddArray 1 byte", (t) => {
   t.plan(3);
-  const testHashArray = bigIntegerToWordArray(ONE);
+  const testHashArray = bigIntToArrayBuffer(ONE);
   t.equal(1, testHashArray.sigBytes);
 
   const paddedLibArray = padWordArray(testHashArray, 256);

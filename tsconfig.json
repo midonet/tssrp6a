@@ -10,8 +10,8 @@
     "noUnusedParameters": true,
     "noImplicitThis": true,
     "strict": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "types/crypto.d.ts"]
 }
 
