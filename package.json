@@ -9,8 +9,7 @@
   "types": "dist/index.d.ts",
   "private": false,
   "dependencies": {
-    "bigint-mod-arith": "^3.0.0",
-    "crypto-js": "^4.0.0"
+    "bigint-mod-arith": "^3.0.0"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
