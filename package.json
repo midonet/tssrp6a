@@ -30,7 +30,7 @@
   },
   "scripts": {
     "build": "yarn tsc --build tsconfig.json",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"]}' yarn tape 'test/**/*.test.*' -r ts-node/register",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"],   \"typeRoots\" : [\"node_modules/@types\", \"types\"]}' yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts",
     "coverage": "yarn nyc yarn test:report",

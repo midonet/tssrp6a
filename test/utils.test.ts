@@ -2,7 +2,6 @@ import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import {
   bigIntToArrayBuffer,
-  createHashWordArray,
   createVerifier,
   generateRandomBigInt,
   generateRandomString,
@@ -43,7 +42,7 @@ test("#stringToArrayBuffer", (t) => {
   for (let i = 0; i < testString.length; ++i) {
     charCodes.push(testString.charCodeAt(i));
   }
-  t.equals(testString.length, hashArray.sigBytes, "Array size");
+  t.equals(testString.length, hashArray.byteLength, "Array size");
   t.deepEqual(
     [
       (charCodes[0] << 24) |

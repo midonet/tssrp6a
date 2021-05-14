@@ -7,21 +7,12 @@ test("existing hash", (t) => {
   t.end();
 });
 
-test("non-existing hash", (t) => {
-  t.throws(
-    () => new SRPParameters(undefined, undefined, "SHO-256" as any),
-    /unknown hash/i,
-  );
-  t.end();
-});
-
 test("hash bit count", (t) => {
   t.plan(7);
   const expectedBitSize = [160, 224, 256, 384, 512, 512, 160];
   Object.keys(SRPParameters.H).map((key, idx) => {
     const parameters = new SRPParameters(
-      SRPParameters.N["2048"],
-      BigInt([2]),
+      SRPParameters.PrimeGroup[2048],
       SRPParameters.H[key],
     );
     t.equals(expectedBitSize[idx], hashBitCount(parameters), key);
@@ -34,8 +25,10 @@ test("Size of N is correct", (t) => {
   // https://groups.google.com/forum/#!topic/clipperz/DJFqZYHv2qk
   const expectedSizeInBytes: number[] = [33, 64, 96, 128, 192, 256];
   const actualSizeInBytes: number[] = new Array(6).fill(0);
-  Object.keys(SRPParameters.N).map((key, idx) => {
-    actualSizeInBytes[idx] = bigIntToArrayBuffer(SRPParameters.N[key]).sigBytes;
+  Object.keys(SRPParameters.PrimeGroup).map((key, idx) => {
+    actualSizeInBytes[idx] = bigIntToArrayBuffer(
+      SRPParameters.PrimeGroup[key],
+    ).byteLength;
   });
   actualSizeInBytes.sort((x, y) => x - y);
   t.deepEqual(expectedSizeInBytes, actualSizeInBytes, "N sizes are correct");

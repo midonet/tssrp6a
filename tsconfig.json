@@ -11,7 +11,8 @@
     "noImplicitThis": true,
     "strict": true,
     "noImplicitAny": false,
+    "typeRoots": ["node_modules/@types", "types"]
   },
-  "include": ["src/**/*", "types/crypto.d.ts"]
+  "include": ["src/**/*"]
 }
 
