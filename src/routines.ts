@@ -5,7 +5,6 @@ import {
   generateRandomBigInt,
   hash,
   hashPadded,
-  HashWordArray,
   stringToArrayBuffer,
   arrayBufferToBigInt,
 } from "./utils";
@@ -22,18 +21,18 @@ import {
 export class SRPRoutines {
   constructor(public readonly parameters: SRPParameters) {}
 
-  public hash(...as: HashWordArray[]): HashWordArray {
+  public hash(...as: ArrayBuffer[]): Promise<ArrayBuffer> {
     return hash(this.parameters, ...as);
   }
 
-  public hashPadded(...as: HashWordArray[]): HashWordArray {
+  public hashPadded(...as: ArrayBuffer[]): Promise<ArrayBuffer> {
     const targetLength = Math.trunc((this.parameters.NBits + 7) / 8);
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
-  public computeK(): bigint {
+  public async computeK(): Promise<bigint> {
     return arrayBufferToBigInt(
-      this.hashPadded(
+      await this.hashPadded(
         bigIntToArrayBuffer(this.parameters.primeGroup.N),
         bigIntToArrayBuffer(this.parameters.primeGroup.g),
       ),
@@ -43,22 +42,30 @@ export class SRPRoutines {
   public generateRandomSalt(numBytes?: number): bigint {
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
-    const saltBytes = numBytes || (2 * this.parameters.HBits) / 8;
+    const saltBytes = numBytes || (2 * this.parameters.HBits) / 8; // TODO HBits fix
     return generateRandomBigInt(saltBytes);
   }
 
-  public computeX(I: string, s: bigint, P: string): bigint {
+  public async computeX(I: string, s: bigint, P: string): Promise<bigint> {
     return arrayBufferToBigInt(
-      this.hash(bigIntToArrayBuffer(s), this.computeIdentityHash(I, P)),
+      await this.hash(
+        bigIntToArrayBuffer(s),
+        await this.computeIdentityHash(I, P),
+      ),
     );
   }
 
-  public computeXStep2(s: bigint, identityHash: HashWordArray): bigint {
-    return arrayBufferToBigInt(this.hash(bigIntToArrayBuffer(s), identityHash));
+  public async computeXStep2(
+    s: bigint,
+    identityHash: ArrayBuffer,
+  ): Promise<bigint> {
+    return arrayBufferToBigInt(
+      await this.hash(bigIntToArrayBuffer(s), identityHash),
+    );
   }
 
-  public computeIdentityHash(_: string, P: string): HashWordArray {
-    return this.hash(stringToArrayBuffer(P));
+  public async computeIdentityHash(_: string, P: string): Promise<ArrayBuffer> {
+    return await this.hash(stringToArrayBuffer(P));
   }
 
   public computeVerifier(x: bigint): bigint {
@@ -92,21 +99,21 @@ export class SRPRoutines {
     return value % this.parameters.primeGroup.N !== BigInt(0);
   }
 
-  public computeU(A: bigint, B: bigint): bigint {
+  public async computeU(A: bigint, B: bigint): Promise<bigint> {
     return arrayBufferToBigInt(
-      this.hashPadded(bigIntToArrayBuffer(A), bigIntToArrayBuffer(B)),
+      await this.hashPadded(bigIntToArrayBuffer(A), bigIntToArrayBuffer(B)),
     );
   }
 
-  public computeClientEvidence(
+  public async computeClientEvidence(
     _I: string,
     _s: bigint,
     A: bigint,
     B: bigint,
     S: bigint,
-  ): bigint {
+  ): Promise<bigint> {
     return arrayBufferToBigInt(
-      this.hash(
+      await this.hash(
         bigIntToArrayBuffer(A),
         bigIntToArrayBuffer(B),
         bigIntToArrayBuffer(S),
@@ -114,9 +121,13 @@ export class SRPRoutines {
     );
   }
 
-  public computeServerEvidence(A: bigint, M1: bigint, S: bigint): bigint {
+  public async computeServerEvidence(
+    A: bigint,
+    M1: bigint,
+    S: bigint,
+  ): Promise<bigint> {
     return arrayBufferToBigInt(
-      this.hash(
+      await this.hash(
         bigIntToArrayBuffer(A),
         bigIntToArrayBuffer(M1),
         bigIntToArrayBuffer(S),
