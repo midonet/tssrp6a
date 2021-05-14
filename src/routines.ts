@@ -34,8 +34,8 @@ export class SRPRoutines {
   public computeK(): bigint {
     return arrayBufferToBigInt(
       this.hashPadded(
-        bigIntToArrayBuffer(this.parameters.N),
-        bigIntToArrayBuffer(this.parameters.g),
+        bigIntToArrayBuffer(this.parameters.primeGroup.N),
+        bigIntToArrayBuffer(this.parameters.primeGroup.g),
       ),
     );
   }
@@ -62,7 +62,11 @@ export class SRPRoutines {
   }
 
   public computeVerifier(x: bigint): bigint {
-    return modPow(this.parameters.g, x, this.parameters.N);
+    return modPow(
+      this.parameters.primeGroup.g,
+      x,
+      this.parameters.primeGroup.N,
+    );
   }
 
   public generatePrivateValue(): bigint {
@@ -70,18 +74,22 @@ export class SRPRoutines {
     let bi: bigint;
 
     do {
-      bi = generateRandomBigInt(numBits / 8) % this.parameters.N;
+      bi = generateRandomBigInt(numBits / 8) % this.parameters.primeGroup.N;
     } while (bi === BigInt(0));
 
     return bi;
   }
 
   public computeClientPublicValue(a: bigint): bigint {
-    return modPow(this.parameters.g, a, this.parameters.N);
+    return modPow(
+      this.parameters.primeGroup.g,
+      a,
+      this.parameters.primeGroup.N,
+    );
   }
 
   public isValidPublicValue(value: bigint): boolean {
-    return value % this.parameters.N !== BigInt(0);
+    return value % this.parameters.primeGroup.N !== BigInt(0);
   }
 
   public computeU(A: bigint, B: bigint): bigint {
@@ -124,8 +132,9 @@ export class SRPRoutines {
     B: bigint,
   ): bigint {
     const exp = u * x + a;
-    const tmp = modPow(this.parameters.g, x, this.parameters.N) * k;
+    const tmp =
+      modPow(this.parameters.primeGroup.g, x, this.parameters.primeGroup.N) * k;
 
-    return modPow(B - tmp, exp, this.parameters.N);
+    return modPow(B - tmp, exp, this.parameters.primeGroup.N);
   }
 }
