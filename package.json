@@ -25,12 +25,13 @@
     "tap-diff": "^0.1.1",
     "tap-junit": "^4.2.0",
     "tape": "^5.2.2",
+    "tape-promise": "^4.0.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
   },
   "scripts": {
     "build": "yarn tsc --build tsconfig.json",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"types\": [\"node\"],   \"typeRoots\" : [\"node_modules/@types\", \"types\"]}' yarn tape 'test/**/*.test.*' -r ts-node/register",
+    "test": "yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts",
     "coverage": "yarn nyc yarn test:report",

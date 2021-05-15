@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 
@@ -79,9 +80,17 @@ export function hashPadded(
  * @return The string.
  */
 export function generateRandomString(characterCount: number = 10) {
-  const u8 = new Uint8Array(characterCount / 2); // each byte has 2 hex digits
-  crypto.getRandomValues(u8);
-  return u8.reduce((str, i) => str + i.toString(16), "");
+  const u8 = new Uint8Array(Math.ceil(Math.ceil(characterCount / 2))); // each byte has 2 hex digits
+  crypto.webcrypto.getRandomValues(u8);
+  return u8
+    .reduce((str, i) => {
+      const hex = i.toString(16).toString();
+      if (hex.length === 1) {
+        return str + "0" + hex;
+      }
+      return str + hex;
+    }, "")
+    .slice(0, characterCount); // so we don't go over when characterCount is odd
 }
 
 export function generateRandomBigInt(numBytes: number = 16): bigint {
@@ -137,6 +146,6 @@ export const hashBitCount = async (
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);
-  crypto.getRandomValues(u8);
+  crypto.webcrypto.getRandomValues(u8);
   return u8.buffer;
 };
