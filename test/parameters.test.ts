@@ -3,6 +3,11 @@ import { bigIntToArrayBuffer, hashBitCount } from "../src/utils";
 import { test } from "./tests";
 
 test("existing hash", (t) => {
+  t.throws(() => new SRPParameters(SRPParameters.PrimeGroup[2048], null!));
+  t.end();
+});
+
+test("no hash function", (t) => {
   t.doesNotThrow(() => new SRPParameters());
   t.end();
 });
