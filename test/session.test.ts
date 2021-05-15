@@ -96,47 +96,47 @@ test("error - wrong password", async (t) => {
   );
   const { A, M1 } = await clientSession.step2(salt, server.B);
 
-  t.throws(() => {
+  await t.rejects(() => {
     server.step2(A, M1);
   }, /bad client credentials/i);
 });
 
-test("error - bad/empty A or M1", (t) => {
+test("error - bad/empty A or M1", async (t) => {
   t.plan(5);
 
   const someBigInteger = generateRandomBigInt();
 
-  t.throws(async () => {
+  await t.rejects(() => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
-    await serverSession
+    return serverSession
       .step1("pepi", someBigInteger, someBigInteger)
       .then((srpStep1Server) => srpStep1Server.step2(null!, ONE));
   }, /Client public value \(A\) must not be null/i);
-  t.throws(() => {
+  await t.rejects(() => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
-    serverSession
+    return serverSession
       .step1("pepi", someBigInteger, someBigInteger)
       .then((srpStep1Server) =>
         srpStep1Server.step2(null as any, someBigInteger),
       );
   }, /Client public value \(A\) must not be null/i);
-  t.throws(() => {
+  await t.rejects(() => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
-    serverSession
+    return serverSession
       .step1("pepi", someBigInteger, someBigInteger)
       .then((srpStep1Server) => srpStep1Server.step2(someBigInteger, null!));
   }, /Client evidence \(M1\) must not be null/i);
-  t.throws(() => {
+  await t.rejects(() => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
-    serverSession
+    return serverSession
       .step1("pepi", someBigInteger, someBigInteger)
       .then((srpStep1Server) =>
         srpStep1Server.step2(someBigInteger, null as any),
       );
   }, /Client evidence \(M1\) must not be null/i);
-  t.throws(() => {
+  await t.rejects(() => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
-    serverSession
+    return serverSession
       .step1("pepi", someBigInteger, someBigInteger)
       .then((srpStep1Server) => srpStep1Server.step2(ZERO, someBigInteger));
   }, /Invalid Client public value \(A\): /i);

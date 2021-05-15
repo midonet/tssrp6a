@@ -7,16 +7,18 @@ test("existing hash", (t) => {
   t.end();
 });
 
-test("hash bit count", (t) => {
-  t.plan(7);
-  const expectedBitSize = [160, 224, 256, 384, 512, 512, 160];
-  Object.keys(SRPParameters.H).map((key, idx) => {
-    const parameters = new SRPParameters(
-      SRPParameters.PrimeGroup[2048],
-      SRPParameters.H[key],
-    );
-    t.equals(expectedBitSize[idx], hashBitCount(parameters), key);
-  });
+test("hash bit count", async (t) => {
+  t.plan(4);
+  const expectedBitSize = [160, 256, 384, 512];
+  await Promise.all(
+    Object.keys(SRPParameters.H).map(async (key, idx) => {
+      const parameters = new SRPParameters(
+        SRPParameters.PrimeGroup[2048],
+        SRPParameters.H[key],
+      );
+      t.equals(expectedBitSize[idx], await hashBitCount(parameters), key);
+    }),
+  );
 });
 
 test("Size of N is correct", (t) => {
@@ -27,7 +29,7 @@ test("Size of N is correct", (t) => {
   const actualSizeInBytes: number[] = new Array(6).fill(0);
   Object.keys(SRPParameters.PrimeGroup).map((key, idx) => {
     actualSizeInBytes[idx] = bigIntToArrayBuffer(
-      SRPParameters.PrimeGroup[key],
+      SRPParameters.PrimeGroup[key].N,
     ).byteLength;
   });
   actualSizeInBytes.sort((x, y) => x - y);
