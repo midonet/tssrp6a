@@ -44,7 +44,7 @@ export class SRPRoutines {
     const HBits = await hashBitCount(this.parameters);
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
-    const saltBytes = numBytes || (2 * HBits) / 8; // TODO HBits fix
+    const saltBytes = numBytes || (2 * HBits) / 8;
     return generateRandomBigInt(saltBytes);
   }
 

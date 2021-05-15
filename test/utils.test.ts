@@ -64,7 +64,7 @@ test("#createVerifierHexSalt errors", async (t) => {
 });
 
 test("#bigIntToArrayBuffer", (t) => {
-  t.plan(5);
+  t.plan(8);
   let arrayBuffer = bigIntToArrayBuffer(ONE);
   let u8 = new Uint8Array(arrayBuffer);
   t.equals(1, arrayBuffer.byteLength);
@@ -81,57 +81,13 @@ test("#bigIntToArrayBuffer", (t) => {
     "Negative values are partially supported",
   );
 
-  /* const testNumber = BigInt("0x0102");
+  const testNumber = BigInt("0x0102");
   arrayBuffer = bigIntToArrayBuffer(testNumber);
   u8 = new Uint8Array(arrayBuffer);
   t.equals(2, arrayBuffer.byteLength, "Two bytes in 0x0102");
-  t.equals(0x0102 << 16, u8[0]); */
+  t.equals(1, u8[0]);
+  t.equals(2, u8[1]);
 });
-
-/*
-test("#bigIntToArrayBuffer 5 bytes number", (t) => {
-  t.plan(5);
-  const numberHexStr = "7fff7effee";
-  const testNumber = BigInt(`0x${numberHexStr}`);
-  t.true(testNumber > 0, "The number is positive");
-  t.equals(
-    numberHexStr,
-    testNumber.toString(16),
-    "toString() returns the same string",
-  );
-  const wordArray = bigIntToArrayBuffer(testNumber);
-  t.equals(5, wordArray.sigBytes, `Five bytes in ${numberHexStr}`);
-  t.equals(0x7fff7eff, wordArray.words[0], "First word is correct");
-  t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
-});
-
-test("#bigIntToArrayBuffer 1 byte number", (t) => {
-  t.plan(2);
-  const numberHexStr = "0xff";
-  const testNumber = BigInt(numberHexStr);
-  const wordArray = bigIntToArrayBuffer(testNumber);
-  t.equals(1, wordArray.sigBytes, `One byte in {numberHexStr}`);
-  t.equals(
-    Number(testNumber) << 24,
-    wordArray.words[0],
-    "First word is correct",
-  );
-});
-
-test("#bigIntToArrayBuffer 5 bytes number, big byte", (t) => {
-  t.plan(4);
-  const numberHexStr = "ffffffffee";
-  const testNumber = BigInt(`0x${numberHexStr}`);
-  t.true(testNumber > 0, "The number is positive");
-  t.equals(
-    numberHexStr,
-    testNumber.toString(16),
-    "toString() returns the same string",
-  );
-  const wordArray = bigIntToArrayBuffer(testNumber);
-  t.equals(5, wordArray.sigBytes, `Five bytes in ${numberHexStr}`);
-  t.equals(0xee << 24, wordArray.words[1], "Second word is correct");
-});*/
 
 test("#paddArray", (t) => {
   t.plan(6);

@@ -151,7 +151,7 @@ export async function createVerifierAndSalt(
 export const hashBitCount = async (
   parameters: SRPParameters,
 ): Promise<number> =>
-  (await hash(parameters, bigIntToArrayBuffer(BigInt(1)))).byteLength << 3; // TODO make sure this still works
+  (await hash(parameters, bigIntToArrayBuffer(BigInt(1)))).byteLength << 3;
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);

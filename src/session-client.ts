@@ -56,7 +56,7 @@ class SRPClientSessionStep1 {
     if (!B) {
       throw new Error("Public server value (B) must not be null");
     }
-    // TODO can we run any of these promises at the same time?
+    // TODO can we run any of these promises in parallel?
     const x = await this.routines.computeXStep2(salt, this.IH);
     const a = this.routines.generatePrivateValue();
     const A = this.routines.computeClientPublicValue(a);
