@@ -5,14 +5,14 @@ import { SRPRoutines } from "./routines";
 export class SRPClientSession {
   constructor(private readonly routines: SRPRoutines) {}
   public async step1(
-      /**
-       * User identity
-       */
-      userId: string,
-      /**
-       * User password (not kept in state)
-       */
-      userPassword: string,
+    /**
+     * User identity
+     */
+    userId: string,
+    /**
+     * User password (not kept in state)
+     */
+    userPassword: string,
   ): Promise<SRPClientSessionStep1> {
     if (!userId || !userId.trim()) {
       throw new Error("User identity must not be null nor empty");
