@@ -52,7 +52,7 @@ test("#SRP6aSession success", async (t) => {
   const M2 = await server.step2(srp6aClient_step2.A, srp6aClient_step2.M1);
 
   // client ensures server identity
-  srp6aClient_step2.step3(M2);
+  await srp6aClient_step2.step3(M2);
   t.pass(`user:${testUsername}, password:${testPassword}, salt: ${salt}`);
 });
 
@@ -87,5 +87,5 @@ test("#SRP6aSession config mismatch", async (t) => {
   // client gets challenge B from server step1 and sends prove M1 to server
   const { A, M1 } = await defaultClient.step2(salt, serverSession.B);
 
-  t.throws(() => serverSession.step2(A, M1), /bad client credentials/i);
+  await t.rejects(() => serverSession.step2(A, M1), /bad client credentials/i);
 });

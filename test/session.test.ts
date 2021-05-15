@@ -96,9 +96,7 @@ test("error - wrong password", async (t) => {
   );
   const { A, M1 } = await clientSession.step2(salt, server.B);
 
-  await t.rejects(() => {
-    server.step2(A, M1);
-  }, /bad client credentials/i);
+  await t.rejects(() => server.step2(A, M1), /bad client credentials/i);
 });
 
 test("error - bad/empty A or M1", async (t) => {
