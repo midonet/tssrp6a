@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import { crossEnvCrypto } from "./crossEnvCrypto";
 
 export interface PrimeGroup {
   N: bigint; // the prime
@@ -65,13 +65,9 @@ SRPParameters.PrimeGroup = {
   },
 };
 
-function digestFunctionToHashFunction(algorithm: AlgorithmIdentifier) {
-  return (data: ArrayBuffer) => crypto.webcrypto.subtle.digest(algorithm, data);
-}
-
 SRPParameters.H = {
-  SHA1: digestFunctionToHashFunction("SHA-1"),
-  SHA256: digestFunctionToHashFunction("SHA-256"),
-  SHA384: digestFunctionToHashFunction("SHA-384"),
-  SHA512: digestFunctionToHashFunction("SHA-512"),
+  SHA1: crossEnvCrypto.hashFunctions.SHA1,
+  SHA256: crossEnvCrypto.hashFunctions.SHA256,
+  SHA384: crossEnvCrypto.hashFunctions.SHA384,
+  SHA512: crossEnvCrypto.hashFunctions.SHA512,
 };
