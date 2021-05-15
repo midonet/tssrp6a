@@ -13,11 +13,13 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@magic-works/ttypescript-browser-like-import-transformer": "^3.0.0",
     "@types/crypto-js": "3.1.43",
     "@types/jsbn": "1.2.29",
     "@types/node": "^15.0.3",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
+    "@zoltu/typescript-transformer-append-js-extension": "^1.0.1",
     "eslint": "^7.26.0",
     "nyc": "^15.1.0",
     "prettier": "^2.3.0",
@@ -27,10 +29,12 @@
     "tape": "^5.2.2",
     "tape-promise": "^4.0.0",
     "ts-node": "^9.1.1",
+    "ttypescript": "^1.5.12",
     "typescript": "^4.2.4"
   },
   "scripts": {
     "build": "yarn tsc --build tsconfig.json",
+    "build:esm": "yarn ttsc --project tsconfig.esm.json && cp node_modules/bigint-mod-arith/dist/bundles/bigint-mod-arith.iife.js demo/",
     "test": "yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts",

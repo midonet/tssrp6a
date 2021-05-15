@@ -12,10 +12,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
-
       - name: Install
         run: yarn install --frozen-lockfile
       - name: Style checks
@@ -24,4 +22,19 @@ jobs:
         run: yarn build
       - name: Tests
         run: yarn test
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install
+        run: yarn install --frozen-lockfile
+      - name: Build esm
+        run: yarn build:esm
+      - name: Install puppeteer and static
+        run: yarn add puppeteer@9.1.1 node-static@0.7.11
+      - name: Launch static
+        run: yarn static &
+      - name: Browser Test
+        run: node puppeteer.js
 

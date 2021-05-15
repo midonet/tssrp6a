@@ -1,4 +1,4 @@
-name: Coverage report
+name: Pages
 
 on:
   push:
@@ -17,17 +17,39 @@ jobs:
       - name: Install
         run: yarn install --frozen-lockfile
 
+      - name: Build esm
+        run: yarn build:esm
+
       - name: Coverage report
         run: yarn coverage:report
+
+      - name: Make pages dir
+        run: |
+          mkdir pages
+          cp -R dist/. pages/dist
+          cp -R demo/. pages/demo
+          cp -R reports/unit/. pages/coverage
 
       - name: Deploy to GitHub Pages
         if: success()
         uses: crazy-max/ghaction-github-pages@v2
         with:
           target_branch: gh-pages
-          build_dir: reports/unit
+          build_dir: pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  badge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Coverage report
+        run: yarn coverage:report
 
       - name: Coverage number
         run: |
