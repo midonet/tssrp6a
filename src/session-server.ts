@@ -7,7 +7,7 @@ import { SRPRoutines } from "./routines";
 export class SRPServerSession {
   constructor(private readonly routines: SRPRoutines) {}
 
-  public step1(
+  public async step1(
     /**
      * User identity
      */
@@ -22,7 +22,7 @@ export class SRPServerSession {
     verifier: bigint,
   ) {
     const b = this.routines.generatePrivateValue();
-    const k = this.routines.computeK();
+    const k = await this.routines.computeK();
     const B = computeServerPublicValue(
       this.routines.parameters,
       k,
@@ -68,12 +68,12 @@ class SRPServerSessionStep1 {
   /**
    * Compute the session key "S" without computing or checking client evidence
    */
-  public sessionKey(
+  public async sessionKey(
     /**
      * Client public key "A"
      */
     A: bigint,
-  ): bigint {
+  ): Promise<bigint> {
     if (A === null) {
       throw new Error("Client public value (A) must not be null");
     }
@@ -82,9 +82,9 @@ class SRPServerSessionStep1 {
       throw new Error(`Invalid Client public value (A): ${A.toString(16)}`);
     }
 
-    const u = this.routines.computeU(A, this.B);
+    const u = await this.routines.computeU(A, this.B);
     const S = computeServerSessionKey(
-      this.routines.parameters.N,
+      this.routines.parameters.primeGroup.N,
       this.verifier,
       u,
       A,
@@ -93,7 +93,7 @@ class SRPServerSessionStep1 {
     return S;
   }
 
-  public step2(
+  public async step2(
     /**
      * Client public key "A"
      */
@@ -107,9 +107,9 @@ class SRPServerSessionStep1 {
       throw new Error("Client evidence (M1) must not be null");
     }
 
-    const S = this.sessionKey(A);
+    const S = await this.sessionKey(A);
 
-    const computedM1 = this.routines.computeClientEvidence(
+    const computedM1 = await this.routines.computeClientEvidence(
       this.identifier,
       this.salt,
       A,
@@ -133,7 +133,10 @@ const computeServerPublicValue = (
   v: bigint,
   b: bigint,
 ): bigint => {
-  return (modPow(parameters.g, b, parameters.N) + v * k) % parameters.N;
+  return (
+    (modPow(parameters.primeGroup.g, b, parameters.primeGroup.N) + v * k) %
+    parameters.primeGroup.N
+  );
 };
 
 const computeServerSessionKey = (

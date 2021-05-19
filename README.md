@@ -22,7 +22,9 @@ The `target` of TypeScript output is `es6`.
 
 Needs [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt) native support, or a polyfill which is not included.
 
-The only dependencies are [crypto-js](https://www.npmjs.com/package/crypto-js) and [bigint-mod-arith](https://www.npmjs.com/package/bigint-mod-arith).
+The only dependency is [bigint-mod-arith](https://www.npmjs.com/package/bigint-mod-arith).
+
+**Note**: This module makes use of [`Crypto.subtle`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/subtle) and therefore only works on HTTPS.
 
 ## Usage
 ### Signup / registration
@@ -36,16 +38,17 @@ Here is a complete example of signup:
 import {
  createVerifierAndSalt, SRPParameters, SRPRoutines,
 } from "tssrp6a"
-
-const srp6aNimbusRoutines = new SRPRoutines(new SRPParameters());
-const userId = "hello@world.org";
-const userPassword = "password";
-const { s: salt, v: verifier } = createVerifierAndSalt(
-  srp6aNimbusRoutines,
-  userId,
-  userPassword,
-);
-// store salt and verifier in a data base
+(async ()=> {
+    const srp6aNimbusRoutines = new SRPRoutines(new SRPParameters());
+    const userId = "hello@world.org";
+    const userPassword = "password";
+    const { s: salt, v: verifier } = await createVerifierAndSalt(
+        srp6aNimbusRoutines,
+        userId,
+        userPassword,
+    );
+// store salt and verifier in a database
+})()
 ```
 
 ### Signin / login
@@ -71,45 +74,47 @@ import {
  SRPServerSession
 } from "tssrp6a"
 
-const srp6aNimbusRoutines = new SRPRoutines(new SRPParameters());
+(async ()=> {
+    const srp6aNimbusRoutines = new SRPRoutines(new SRPParameters());
 
-const username = "hello@world.org";
-let password = "password";
+    const username = "hello@world.org";
+    let password = "password";
 
 // Sign up
-const { s: salt, v: verifier } = createVerifierAndSalt(
-  srp6aNimbusRoutines,
-  username,
-  password,
-);
+    const {s: salt, v: verifier} = await createVerifierAndSalt(
+        srp6aNimbusRoutines,
+        username,
+        password,
+    );
 
 // Sign in
-const srp6aNimbusClient = new SRPClientSession(srp6aNimbusRoutines);
-srp6aNimbusClient.step1(username, password);
+    const srp6aNimbusClient = new SRPClientSession(srp6aNimbusRoutines);
+    await srp6aNimbusClient.step1(username, password);
 // erase password at this point, it is no longer stored
-password = ""
+    password = ""
 
-const server = new SRPServerSession(srp6aNimbusRoutines);
+    const server = new SRPServerSession(srp6aNimbusRoutines);
 // server gets identifier from client, salt+verifier from db (from signup)
-const B = server.step1(username, salt, verifier);
+    const B = await server.step1(username, salt, verifier);
 
 // client gets challenge B from server step1 and sends prove M1 to server
-const { A, M1 } = srp6aNimbusClient.step2(salt, B);
+    const {A, M1} = await srp6aNimbusClient.step2(salt, B);
 
 // servers checks client prove M1 and sends server prove M2 to client
-const M2 = server.step2(A, M1);
+    const M2 = await server.step2(A, M1);
 
 // client ensures server identity
-srp6aNimbusClient.step3(M2);
+    await srp6aNimbusClient.step3(M2);
+})()
 ```
 
-## Recomendations
+## Recommendations
 
 SRP alone only prevents a man-in-the-middle attack from _reading_ the password, but such an attack could also inject code into the browser to hijack the password.
 
 Always use SRP in combination with HTTPS. Browsers can be vulnerable to: having malicious certificates installed beforehand, rogue certificates in the wild, server misconfiguration, bugs like the heartbleed attack, servers leaking password into errors and logs. SRP in the browser offers an additional hurdle and may prevent some mistakes from escalating.
 
-The client can chose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
+The client can choose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
 
 ## Notes
 
