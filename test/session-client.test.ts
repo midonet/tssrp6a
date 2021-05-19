@@ -61,26 +61,24 @@ test("#ParameterValidation2 Null/Undefined B", async (t) => {
 });
 
 test("#ParameterValidation3 All correct", async (t) => {
-  const session = await new SRPClientSession(
-    new SRPRoutines(new SRPParameters()),
-  )
-    .step1("a", "b")
-    .then((srpStep1Client) =>
-      srpStep1Client.step2(generateRandomBigInt(16), generateRandomBigInt(16)),
-    );
+  const session = await (
+    await new SRPClientSession(new SRPRoutines(new SRPParameters())).step1(
+      "a",
+      "b",
+    )
+  ).step2(generateRandomBigInt(16), generateRandomBigInt(16));
   // It rejects because the fake values don't allow the verification to work
   await t.rejects(() => session.step3(generateRandomBigInt(16)), /bad server/i);
   t.end();
 });
 
 test("#ParameterValidation3 Null/Undefined M2", async (t) => {
-  const session = await new SRPClientSession(
-    new SRPRoutines(new SRPParameters()),
-  )
-    .step1("a", "b")
-    .then((srpStep1Client) =>
-      srpStep1Client.step2(generateRandomBigInt(16), generateRandomBigInt(16)),
-    );
+  const session = await (
+    await new SRPClientSession(new SRPRoutines(new SRPParameters())).step1(
+      "a",
+      "b",
+    )
+  ).step2(generateRandomBigInt(16), generateRandomBigInt(16));
   await t.rejects(() => session.step3(null!), /null/i);
   t.end();
 });

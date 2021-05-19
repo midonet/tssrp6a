@@ -47,10 +47,10 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", a
     verifier,
   );
 
-  const client = await new SRPClientSession(routines)
-    .step1(testUsername, testPassword)
-    .then((srpClientTest1) => srpClientTest1.step2(salt, server.B));
-  const { A, M1 } = client;
+  const step2 = await (
+    await new SRPClientSession(routines).step1(testUsername, testPassword)
+  ).step2(salt, server.B);
+  const { A, M1 } = step2;
   const expectedM1 =
     "1065592601292658505437124973230696132224053916269139221074815217157714371589931041709024714121209539819670742161" +
     "3994973526242913119722902651388367081536560";
@@ -64,8 +64,8 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", a
     "8107494794772683954466730599850612152761206380667455047651776927170374696827188176449536079109880457533611677725" +
     "1201000831208457052092898507480366360561541055823459855779537555693683604785680363035153585367738551563087476652" +
     "245431553181367276381496187072794127822495103880767929264";
-  await client.step3(M2);
-  t.equals(expectedSessionKey, client.S.toString(), "Session key is correct");
+  await step2.step3(M2);
+  t.equals(expectedSessionKey, step2.S.toString(), "Session key is correct");
 });
 
 test("#SRPSession compatible with java nimbus JS, U padding", async (t) => {
