@@ -23,7 +23,7 @@ try {
       (algorithm: AlgorithmIdentifier) => (data: ArrayBuffer) =>
         webcrypto.subtle.digest(algorithm, data);
     crossEnvCrypto = {
-      randomBytes: webcrypto.getRandomValues,
+      randomBytes: webcrypto.getRandomValues.bind(webcrypto),
       hashFunctions: {
         SHA1: digestFunctionToHashFunction("SHA-1"),
         SHA256: digestFunctionToHashFunction("SHA-256"),
