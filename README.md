@@ -22,9 +22,8 @@ You can see a real-time [demo here](https://midonet.github.io/tssrp6a/demo).
 
 The `target` of TypeScript output is `es6`.
 
-Needs [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt) native support, or a polyfill which is not included.
-
-The only dependency is [bigint-mod-arith](https://www.npmjs.com/package/bigint-mod-arith).
+This package has zero dependencies. It only needs [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)
+native support, or a polyfill which is not included.
 
 **Note**: This module makes use of [`Crypto.subtle`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/subtle) and therefore only works on HTTPS.
 

@@ -1,4 +1,3 @@
-import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
 import {
   bigIntToArrayBuffer,
@@ -8,6 +7,7 @@ import {
   stringToArrayBuffer,
   arrayBufferToBigInt,
   hashBitCount,
+  modPow,
 } from "./utils";
 
 /**
@@ -144,10 +144,10 @@ export class SRPRoutines {
     a: bigint,
     B: bigint,
   ): bigint {
+    const N = this.parameters.primeGroup.N;
     const exp = u * x + a;
-    const tmp =
-      modPow(this.parameters.primeGroup.g, x, this.parameters.primeGroup.N) * k;
+    const tmp = (modPow(this.parameters.primeGroup.g, x, N) * k) % N;
 
-    return modPow(B - tmp, exp, this.parameters.primeGroup.N);
+    return modPow(B + N - tmp, exp, N);
   }
 }

@@ -2,6 +2,10 @@ import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 import { crossEnvCrypto } from "./crossEnvCrypto";
 
+const ZERO: bigint = BigInt(0);
+const ONE: bigint = BigInt(1);
+const TWO: bigint = BigInt(2);
+
 export const bigIntToArrayBuffer = (n: bigint): ArrayBuffer => {
   const hex = n.toString(16);
   const arrayBuffer = new ArrayBuffer(Math.ceil(hex.length / 2));
@@ -152,6 +156,26 @@ export const hashBitCount = async (
   parameters: SRPParameters,
 ): Promise<number> =>
   (await hash(parameters, bigIntToArrayBuffer(BigInt(1)))).byteLength * 8;
+
+/**
+ * Calculates (x**pow) % mod
+ * @param x base
+ * @param pow power
+ * @param mod modulo
+ */
+export function modPow(x: bigint, pow: bigint, mod: bigint): bigint {
+  let result: bigint = ONE;
+  while (pow > ZERO) {
+    if (pow % TWO == ONE) {
+      result = (x * result) % mod;
+      pow -= ONE;
+    } else {
+      x = (x * x) % mod;
+      pow /= TWO;
+    }
+  }
+  return result;
+}
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);
