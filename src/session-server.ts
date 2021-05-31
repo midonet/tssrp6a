@@ -1,6 +1,6 @@
-import { modPow } from "bigint-mod-arith";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
+import { modPow } from "./utils";
 
 // Variable names match the RFC (I, IH, S, b, B, salt, b, A, M1, M2...)
 

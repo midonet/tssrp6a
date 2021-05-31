@@ -530,11 +530,6 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
-bigint-mod-arith@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/bigint-mod-arith/-/bigint-mod-arith-3.0.0.tgz#cad551940ae2c844968018195512d060ce9c5f96"
-  integrity sha512-fwQZhVES5WGfQZCKS5IwBaOZOFA5A7d9tfEeXve9896EJK5ijJCCfPY8cjgFLDjfEZkGWdBBbl/7Nt3k1DJK7Q==
-
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.11.tgz#3c7fcbf529d87226f3d2f52b966ff5271eb441dd"
