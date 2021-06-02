@@ -51,7 +51,7 @@ jobs:
       - name: Coverage number
         run: |
           echo "Running tests with coverage..."
-          COVERAGE=$(yarn coverage:number)
+          COVERAGE=$(yarn -s coverage:number)
           echo "Overall coverage: ${COVERAGE}%"
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
 
