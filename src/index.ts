@@ -9,3 +9,4 @@ export {
   arrayBufferToBigInt,
   generateRandomBigInt,
 } from "./utils";
+export { serialize, deserialize } from "./serde";

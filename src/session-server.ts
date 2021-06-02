@@ -40,7 +40,7 @@ export class SRPServerSession {
   }
 }
 
-class SRPServerSessionStep1 {
+export class SRPServerSessionStep1 {
   constructor(
     public readonly routines: SRPRoutines,
     /**

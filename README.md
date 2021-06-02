@@ -115,7 +115,13 @@ SRP alone only prevents a man-in-the-middle attack from _reading_ the password, 
 
 Always use SRP in combination with HTTPS. Browsers can be vulnerable to: having malicious certificates installed beforehand, rogue certificates in the wild, server misconfiguration, bugs like the heartbleed attack, servers leaking password into errors and logs. SRP in the browser offers an additional hurdle and may prevent some mistakes from escalating.
 
-The client can choose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
+The client can choose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to use more than one way of logging in (think "login with email+password, google, or facebook").
+
+## Serialization
+
+The server "session" state (the server step 1 state) might not be easily kept in memory in case of e.g. a webserver (in constrast with a websocket session). In that case it is advised to either serialize and save username+salt+verifier into the session and recreate step1 from that data, or alternatively use the provided [serde](test/serialization.test.ts) functions to store and recover the state entirely.
+
+The client may also be serialized in either way. While the password is **never** kept in the client session state, storing or sending the state might still make your app vulnerable against some kind of replay attack.
 
 ## Notes
 

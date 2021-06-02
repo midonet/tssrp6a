@@ -26,7 +26,7 @@ export class SRPClientSession {
   }
 }
 
-class SRPClientSessionStep1 {
+export class SRPClientSessionStep1 {
   constructor(
     private readonly routines: SRPRoutines,
     /**
@@ -69,7 +69,7 @@ class SRPClientSessionStep1 {
   }
 }
 
-class SRPClientSessionStep2 {
+export class SRPClientSessionStep2 {
   constructor(
     private readonly routines: SRPRoutines,
     /**
