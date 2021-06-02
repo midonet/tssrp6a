@@ -40,6 +40,7 @@
     "nyc": "nyc -e .ts",
     "coverage": "yarn nyc yarn test:report",
     "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report",
+    "coverage:number": "yarn coverage | grep 'All files' | cut -d '|' -f 5 | sed 's/ //g'",
     "lint_formatter": "prettier -c 'src/**' 'test/**'",
     "lint": "yarn lint_formatter && yarn eslint src test",
     "format": "prettier --write 'src/**' 'test/**'"

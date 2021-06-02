@@ -48,14 +48,13 @@ jobs:
       - name: Install
         run: yarn install --frozen-lockfile
 
-      - name: Coverage report
-        run: yarn coverage:report
-
       - name: Coverage number
         run: |
-          yarn coverage > reports/stdout
-          COVERAGE=$(cat reports/stdout | grep "All files" | cut -d "|" -f 5 | sed 's/ //g')
+          echo "Running tests with coverage..."
+          COVERAGE=$(yarn coverage:number)
+          echo "Overall coverage: ${COVERAGE}%"
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+
       - name: Create the Badge
         uses: schneegans/dynamic-badges-action@v1.0.0
         with:
