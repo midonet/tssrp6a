@@ -125,7 +125,7 @@ The SRP protocol and therefore this library is stateful. Each step sets various 
 const serverStep1 = await new SRPServerSession(TEST_ROUTINES).step1(...); // Each step returns a class, in this case .step1 returns SRPServerSessionStep1
 
 const serializedServerStep1 = JSON.stringify(serverStep1); // Some of the step methods (see below for which ones) have a .toJSON method that returns the internal state. JSON.stringify calls .toJSON
-// you can now store serializedServerStep1 in a database or elsewhere. There are security considerations, see below. 
+// you can now store serializedServerStep1 in a database or elsewhere. There are security implications, see below. 
 
 // when you are ready to restore the state, call fromState on the same step class used to serialize the data (in this case SRPServerSessionStep1) to deserialize
 const deserializedServerStep1 = SRPServerSessionStep1.fromState(
