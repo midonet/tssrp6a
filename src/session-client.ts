@@ -26,10 +26,10 @@ export class SRPClientSession {
   }
 }
 
-export interface SRPClientSessionStep1State {
+type SRPClientSessionStep1State = {
   I: string;
   IH: Array<number>; // standard Array representation of the Uint8Array ArrayBuffer
-}
+};
 
 export class SRPClientSessionStep1 {
   constructor(
@@ -89,11 +89,11 @@ export class SRPClientSessionStep1 {
   }
 }
 
-export interface SRPClientSessionStep2State {
+type SRPClientSessionStep2State = {
   A: string; // hex representation of bigint
   M1: string;
   S: string;
-}
+};
 
 export class SRPClientSessionStep2 {
   constructor(

@@ -40,13 +40,13 @@ export class SRPServerSession {
   }
 }
 
-export interface SRPServerSessionStep1State {
+type SRPServerSessionStep1State = {
   identifier: string;
   salt: string; // hex representation of bigint
   verifier: string;
   b: string;
   B: string;
-}
+};
 
 export class SRPServerSessionStep1 {
   constructor(
