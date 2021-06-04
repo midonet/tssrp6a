@@ -40,7 +40,15 @@ export class SRPServerSession {
   }
 }
 
-class SRPServerSessionStep1 {
+export interface SRPServerSessionStep1State {
+  identifier: string;
+  salt: string; // hex representation of bigint
+  verifier: string;
+  b: string;
+  B: string;
+}
+
+export class SRPServerSessionStep1 {
   constructor(
     public readonly routines: SRPRoutines,
     /**
@@ -124,6 +132,30 @@ class SRPServerSessionStep1 {
     const M2 = this.routines.computeServerEvidence(A, M1, S);
 
     return M2;
+  }
+
+  public toJSON(): SRPServerSessionStep1State {
+    return {
+      identifier: this.identifier,
+      salt: this.salt.toString(16),
+      verifier: this.verifier.toString(16),
+      b: this.b.toString(16),
+      B: this.B.toString(16),
+    };
+  }
+
+  public static fromState(
+    routines: SRPRoutines,
+    state: SRPServerSessionStep1State,
+  ) {
+    return new SRPServerSessionStep1(
+      routines,
+      state.identifier,
+      BigInt("0x" + state.salt),
+      BigInt("0x" + state.verifier),
+      BigInt("0x" + state.b),
+      BigInt("0x" + state.B),
+    );
   }
 }
 
