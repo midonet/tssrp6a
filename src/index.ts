@@ -3,15 +3,9 @@ export { SRPRoutines } from "./routines";
 export {
   SRPClientSession,
   SRPClientSessionStep1,
-  SRPClientSessionStep1State,
   SRPClientSessionStep2,
-  SRPClientSessionStep2State,
 } from "./session-client";
-export {
-  SRPServerSession,
-  SRPServerSessionStep1,
-  SRPServerSessionStep1State,
-} from "./session-server";
+export { SRPServerSession, SRPServerSessionStep1 } from "./session-server";
 export {
   createVerifierAndSalt,
   IVerifierAndSalt,
