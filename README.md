@@ -117,6 +117,33 @@ Always use SRP in combination with HTTPS. Browsers can be vulnerable to: having 
 
 The client can choose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
 
+## Serialization
+
+The SRP protocol and therefore this library is stateful. Each step sets various internal state. Due to the randomness of some of this state (namely the public and private values), repeating the step methods with the same arguments is unlikely (almost definitely) to result in the same state. This proves to be an issue when using a stateless protocol such as HTTP (as opposed to websockets). The server "session" state (the server step 1 state) might not be easily kept in memory. Therefore, we provide a way to serialize and deserialize the step classes in order to restore state. [serialize.test.ts](test/serialize.test.ts) shows some examples here's an explanation of how it works:
+
+```typescript
+const serverStep1 = await new SRPServerSession(TEST_ROUTINES).step1(...); // Each step returns a class, in this case .step1 returns SRPServerSessionStep1
+
+const serializedServerStep1 = JSON.stringify(serverStep1); // Some of the step methods (see below for which ones) have a .toJSON method that returns the internal state. JSON.stringify calls .toJSON
+// you can now store serializedServerStep1 in a database or elsewhere. There are security implications, see below. 
+
+// when you are ready to restore the state, call fromState on the same step class used to serialize the data (in this case SRPServerSessionStep1) to deserialize
+const deserializedServerStep1 = SRPServerSessionStep1.fromState(
+    TEST_ROUTINES, // first param is the routines
+    JSON.parse(serializedServerStep1),
+);
+
+// deserializedServerStep1 is now functionally equivilent as serverStep1 because it contains the same state
+```
+
+Supported steps/classes for serialization are:
+
+- `SRPServerSessionStep1`
+- `SRPClientSessionStep1`
+- `SRPClientSessionStep2`
+
+While the password is **never** kept directly in the state, hashes of it are. If an adversary is able to access the serialized state it will likely open you up to some kind of MITM attack and depending on the step, may allow an attacker to perform a bruteforce and/or dictionary attack to retrieve the password. **Do not expose the serialized data.** For clients, this means do not send it over the network and be careful where you store it. For servers, only send it in encrypted form to parties you trust (such as your database). If you believe state at anytime may have been exposed, it is suggested you change passwords as soon as possible.
+
 ## Notes
 
 This package's default configuration matches the following Java's 
