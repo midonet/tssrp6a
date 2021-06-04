@@ -26,7 +26,12 @@ export class SRPClientSession {
   }
 }
 
-class SRPClientSessionStep1 {
+export interface SRPClientSessionStep1State {
+  I: string;
+  IH: Array<number>; // standard Array representation of the Uint8Array ArrayBuffer
+}
+
+export class SRPClientSessionStep1 {
   constructor(
     private readonly routines: SRPRoutines,
     /**
@@ -67,9 +72,30 @@ class SRPClientSessionStep1 {
 
     return new SRPClientSessionStep2(this.routines, A, M1, S);
   }
+
+  public toJSON(): SRPClientSessionStep1State {
+    return { I: this.I, IH: Array.from(new Uint8Array(this.IH)) };
+  }
+
+  public static fromState(
+    routines: SRPRoutines,
+    state: SRPClientSessionStep1State,
+  ) {
+    return new SRPClientSessionStep1(
+      routines,
+      state.I,
+      new Uint8Array(state.IH).buffer,
+    );
+  }
 }
 
-class SRPClientSessionStep2 {
+export interface SRPClientSessionStep2State {
+  A: string; // hex representation of bigint
+  M1: string;
+  S: string;
+}
+
+export class SRPClientSessionStep2 {
   constructor(
     private readonly routines: SRPRoutines,
     /**
@@ -100,5 +126,25 @@ class SRPClientSessionStep2 {
     if (computedM2 !== M2) {
       throw new Error("Bad server credentials");
     }
+  }
+
+  public toJSON(): SRPClientSessionStep2State {
+    return {
+      A: this.A.toString(16),
+      M1: this.M1.toString(16),
+      S: this.S.toString(16),
+    };
+  }
+
+  public static fromState(
+    routines: SRPRoutines,
+    state: SRPClientSessionStep2State,
+  ) {
+    return new SRPClientSessionStep2(
+      routines,
+      BigInt("0x" + state.A),
+      BigInt("0x" + state.M1),
+      BigInt("0x" + state.S),
+    );
   }
 }
