@@ -1,6 +1,6 @@
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
-import { crossEnvCrypto } from "./crossEnvCrypto";
+import { crossEnvCrypto } from "./cross-env-crypto";
 
 const ZERO: bigint = BigInt(0);
 const ONE: bigint = BigInt(1);

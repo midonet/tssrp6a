@@ -1,4 +1,4 @@
-import { crossEnvCrypto } from "./crossEnvCrypto";
+import { crossEnvCrypto } from "./cross-env-crypto";
 
 export interface PrimeGroup {
   N: bigint; // the prime
