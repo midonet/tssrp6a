@@ -6,6 +6,7 @@ import {
   createVerifier,
   generateRandomBigInt,
   generateRandomString,
+  modPow,
   padStartArrayBuffer,
   stringToArrayBuffer,
 } from "../src/utils";
@@ -126,4 +127,61 @@ test("#paddArray 1 byte", (t) => {
   const expectedArray = new Array(64).fill(0);
   expectedArray[63] = 1;
   t.deepEqual(Uint8Array.from(expectedArray), new Uint8Array(paddedLibArray));
+});
+
+test("#modPow valid inputs", (t) => {
+  t.plan(10);
+
+  const mod = BigInt(1000000007);
+  t.equal(ONE, modPow(ONE, ZERO, mod), "1**0 == 1");
+  t.equal(ONE, modPow(ONE, ONE, mod), "1**1 == 1");
+  t.equal(ONE, modPow(ONE, BigInt(1000), mod), "1**1000 == 1");
+
+  t.equal(ZERO, modPow(ZERO, ONE, mod), "0**1 == 0");
+  t.equal(ONE, modPow(ZERO, ZERO, mod), "0**0 == 1");
+  t.equal(ZERO, modPow(ZERO, BigInt(1024), mod), "0**1024 == 0");
+
+  t.equal(
+    BigInt(243),
+    modPow(BigInt(3), BigInt(5), BigInt(244)),
+    "3**5 == 243",
+  );
+  t.equal(ONE, modPow(BigInt(3), BigInt(5), BigInt(11)), "3**5 % 11 == 1");
+  t.equal(BigInt(1024), modPow(BigInt(2), BigInt(10), mod), "2**10 == 1024");
+  t.equal(
+    BigInt("372410231729430638"),
+    modPow(BigInt(2), BigInt(1023), BigInt("1223432564564235345")),
+    "2**1023 % big number is correct",
+  );
+});
+
+test("#modPow invalid inputs", (t) => {
+  t.plan(6);
+
+  t.throws(
+    () => modPow(-ONE, ONE, ONE),
+    /Invalid base/,
+    "Invalid base, negative",
+  );
+  t.throws(
+    () => modPow(ONE, -ONE, ONE),
+    /Invalid power/,
+    "Invalid power, negative",
+  );
+  t.throws(
+    () => modPow(ONE, ONE, -ONE),
+    /Invalid modulo/,
+    "Invalid modulo, negative",
+  );
+  t.throws(
+    () => modPow(ONE, ONE, ZERO),
+    /Invalid modulo/,
+    "Invalid modulo, zero",
+  );
+  t.throws(
+    () => modPow(BigInt("-485734857638473853465873465"), ONE, ONE),
+    /Invalid base/,
+    "Invalid base, bit negative",
+  );
+  t.throws(() => modPow(-ONE, -ONE, -ONE), /Invalid base/, "All invalids");
 });
