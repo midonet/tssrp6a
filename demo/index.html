@@ -1,0 +1,30 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>tssrp6a demo</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <div id="sequence">
+    <div class="column column-left">Browser</div>
+    <div class="column column-right">Server</div>
+    <div class="lines"></div>
+    <div id="sequence-inner">
+    </div>
+  </div>
+  <div class="notes">
+    <h3>This demo runs a TSSRP6A client and server.</h3>
+    <p>
+      The request/responses are not really happening, everything runs in the
+      browser, but only the shown values would be "sent" to the other side.<br/>
+      The code blocks are actually executed. The "return value" is printed out.<br/>
+      On error, the block is marked in red with the error message instead.<br/>
+      This page also serves as browser test.
+    </p>
+  </div>
+  <script type="module" src="demo.js"></script>
+</body>
+</html>
+
