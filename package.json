@@ -34,7 +34,7 @@
     "build:esm": "yarn ttsc --project tsconfig.esm.json",
     "test": "yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
-    "nyc": "nyc -e .ts -x 'src/crossEnvCrypto.ts' -x 'test/**'",
+    "nyc": "nyc -e .ts -x 'src/cross-env-crypto.ts' -x 'test/**'",
     "coverage": "yarn nyc yarn test:report",
     "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report",
     "coverage:number": "yarn coverage | grep 'All files' | cut -d '|' -f 5 | sed 's/ //g'",
