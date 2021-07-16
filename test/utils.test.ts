@@ -1,3 +1,4 @@
+import bigInt from "big-integer";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import {
@@ -12,8 +13,8 @@ import {
 } from "../src/utils";
 import { test } from "./tests";
 
-const ZERO = BigInt(0);
-const ONE = BigInt(1);
+const ZERO = bigInt("0");
+const ONE = bigInt("1");
 
 test("#generateRandomString", (t) => {
   t.plan(2);
@@ -30,8 +31,8 @@ test("#generateRandomString", (t) => {
 test("#toFromBigIntegerConversions", (t) => {
   t.plan(3);
   ["aa11", "baa11", "1"].forEach((n) => {
-    const bn = BigInt(`0x${n}`);
-    t.equals(arrayBufferToBigInt(bigIntToArrayBuffer(bn)), bn, `${n}`);
+    const bn = bigInt(n, 16);
+    t.true(arrayBufferToBigInt(bigIntToArrayBuffer(bn)).equals(bn), `${n}`);
   });
 });
 
@@ -78,11 +79,11 @@ test("#bigIntToArrayBuffer", (t) => {
 
   t.deepLooseEqual(
     Uint8Array.from([0xff]),
-    new Uint8Array(bigIntToArrayBuffer(-ONE)),
+    new Uint8Array(bigIntToArrayBuffer(ONE.negate())),
     "Negative values are partially supported",
   );
 
-  const testNumber = BigInt("0x0102");
+  const testNumber = bigInt("0102", 16);
   arrayBuffer = bigIntToArrayBuffer(testNumber);
   u8 = new Uint8Array(arrayBuffer);
   t.equals(2, arrayBuffer.byteLength, "Two bytes in 0x0102");
@@ -132,25 +133,31 @@ test("#paddArray 1 byte", (t) => {
 test("#modPow valid inputs", (t) => {
   t.plan(10);
 
-  const mod = BigInt(1000000007);
-  t.equal(ONE, modPow(ONE, ZERO, mod), "1**0 == 1");
-  t.equal(ONE, modPow(ONE, ONE, mod), "1**1 == 1");
-  t.equal(ONE, modPow(ONE, BigInt(1000), mod), "1**1000 == 1");
+  const mod = bigInt("1000000007");
+  t.true(ONE.equals(modPow(ONE, ZERO, mod)), "1**0 == 1");
+  t.true(ONE.equals(modPow(ONE, ONE, mod)), "1**1 == 1");
+  t.true(ONE.equals(modPow(ONE, bigInt("1000"), mod)), "1**1000 == 1");
 
-  t.equal(ZERO, modPow(ZERO, ONE, mod), "0**1 == 0");
-  t.equal(ONE, modPow(ZERO, ZERO, mod), "0**0 == 1");
-  t.equal(ZERO, modPow(ZERO, BigInt(1024), mod), "0**1024 == 0");
+  t.true(ZERO.equals(modPow(ZERO, ONE, mod)), "0**1 == 0");
+  t.true(ONE.equals(modPow(ZERO, ZERO, mod)), "0**0 == 1");
+  t.true(ZERO.equals(modPow(ZERO, bigInt("1024"), mod)), "0**1024 == 0");
 
-  t.equal(
-    BigInt(243),
-    modPow(BigInt(3), BigInt(5), BigInt(244)),
+  t.true(
+    bigInt("243").equals(modPow(bigInt("3"), bigInt("5"), bigInt("244"))),
     "3**5 == 243",
   );
-  t.equal(ONE, modPow(BigInt(3), BigInt(5), BigInt(11)), "3**5 % 11 == 1");
-  t.equal(BigInt(1024), modPow(BigInt(2), BigInt(10), mod), "2**10 == 1024");
-  t.equal(
-    BigInt("372410231729430638"),
-    modPow(BigInt(2), BigInt(1023), BigInt("1223432564564235345")),
+  t.true(
+    ONE.equals(modPow(bigInt("3"), bigInt("5"), bigInt("11"))),
+    "3**5 % 11 == 1",
+  );
+  t.true(
+    bigInt("1024").equals(modPow(bigInt("2"), bigInt("10"), mod)),
+    "2**10 == 1024",
+  );
+  t.true(
+    bigInt("372410231729430638").equals(
+      modPow(bigInt("2"), bigInt("1023"), bigInt("1223432564564235345")),
+    ),
     "2**1023 % big number is correct",
   );
 });
@@ -159,17 +166,17 @@ test("#modPow invalid inputs", (t) => {
   t.plan(6);
 
   t.throws(
-    () => modPow(-ONE, ONE, ONE),
+    () => modPow(ONE.negate(), ONE, ONE),
     /Invalid base/,
     "Invalid base, negative",
   );
   t.throws(
-    () => modPow(ONE, -ONE, ONE),
+    () => modPow(ONE, ONE.negate(), ONE),
     /Invalid power/,
     "Invalid power, negative",
   );
   t.throws(
-    () => modPow(ONE, ONE, -ONE),
+    () => modPow(ONE, ONE, ONE.negate()),
     /Invalid modulo/,
     "Invalid modulo, negative",
   );
@@ -179,9 +186,13 @@ test("#modPow invalid inputs", (t) => {
     "Invalid modulo, zero",
   );
   t.throws(
-    () => modPow(BigInt("-485734857638473853465873465"), ONE, ONE),
+    () => modPow(bigInt("-485734857638473853465873465"), ONE, ONE),
     /Invalid base/,
     "Invalid base, bit negative",
   );
-  t.throws(() => modPow(-ONE, -ONE, -ONE), /Invalid base/, "All invalids");
+  t.throws(
+    () => modPow(ONE.negate(), ONE.negate(), ONE.negate()),
+    /Invalid base/,
+    "All invalids",
+  );
 });

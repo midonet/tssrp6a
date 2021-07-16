@@ -1,3 +1,4 @@
+import bigInt, { BigInteger } from "big-integer";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 import { modPow } from "./utils";
@@ -15,11 +16,11 @@ export class SRPServerSession {
     /**
      * User salt
      */
-    salt: bigint,
+    salt: BigInteger,
     /**
      * User verifier
      */
-    verifier: bigint,
+    verifier: BigInteger,
   ) {
     const b = this.routines.generatePrivateValue();
     const k = await this.routines.computeK();
@@ -58,19 +59,19 @@ export class SRPServerSessionStep1 {
     /**
      * User salt
      */
-    private readonly salt: bigint,
+    private readonly salt: BigInteger,
     /**
      * User verifier
      */
-    private readonly verifier: bigint,
+    private readonly verifier: BigInteger,
     /**
      * Server private key "b"
      */
-    private readonly b: bigint,
+    private readonly b: BigInteger,
     /**
      * Serve public key "B"
      */
-    public readonly B: bigint,
+    public readonly B: BigInteger,
   ) {}
 
   /**
@@ -80,8 +81,8 @@ export class SRPServerSessionStep1 {
     /**
      * Client public key "A"
      */
-    A: bigint,
-  ): Promise<bigint> {
+    A: BigInteger,
+  ): Promise<BigInteger> {
     if (A === null) {
       throw new Error("Client public value (A) must not be null");
     }
@@ -105,11 +106,11 @@ export class SRPServerSessionStep1 {
     /**
      * Client public key "A"
      */
-    A: bigint,
+    A: BigInteger,
     /**
      * Client message "M1"
      */
-    M1: bigint,
+    M1: BigInteger,
   ) {
     if (!M1) {
       throw new Error("Client evidence (M1) must not be null");
@@ -125,7 +126,7 @@ export class SRPServerSessionStep1 {
       S,
     );
 
-    if (computedM1 !== M1) {
+    if (!computedM1.equals(M1)) {
       throw new Error("Bad client credentials");
     }
 
@@ -151,32 +152,31 @@ export class SRPServerSessionStep1 {
     return new SRPServerSessionStep1(
       routines,
       state.identifier,
-      BigInt("0x" + state.salt),
-      BigInt("0x" + state.verifier),
-      BigInt("0x" + state.b),
-      BigInt("0x" + state.B),
+      bigInt(state.salt, 16),
+      bigInt(state.verifier, 16),
+      bigInt(state.b, 16),
+      bigInt(state.B, 16),
     );
   }
 }
 
 const computeServerPublicValue = (
   parameters: SRPParameters,
-  k: bigint,
-  v: bigint,
-  b: bigint,
-): bigint => {
-  return (
-    (modPow(parameters.primeGroup.g, b, parameters.primeGroup.N) + v * k) %
-    parameters.primeGroup.N
-  );
+  k: BigInteger,
+  v: BigInteger,
+  b: BigInteger,
+): BigInteger => {
+  return modPow(parameters.primeGroup.g, b, parameters.primeGroup.N)
+    .add(v.multiply(k))
+    .mod(parameters.primeGroup.N);
 };
 
 const computeServerSessionKey = (
-  N: bigint,
-  v: bigint,
-  u: bigint,
-  A: bigint,
-  b: bigint,
-): bigint => {
-  return modPow(modPow(v, u, N) * A, b, N);
+  N: BigInteger,
+  v: BigInteger,
+  u: BigInteger,
+  A: BigInteger,
+  b: BigInteger,
+): BigInteger => {
+  return modPow(modPow(v, u, N).multiply(A), b, N);
 };

@@ -1,3 +1,4 @@
+import bigInt, { BigInteger } from "big-integer";
 import { SRPRoutines } from "./routines";
 
 // Variable names match the RFC (I, IH, S, b, B, salt, b, A, M1, M2...)
@@ -48,11 +49,11 @@ export class SRPClientSessionStep1 {
     /**
      * Some generated salt (see createVerifierAndSalt)
      */
-    salt: bigint,
+    salt: BigInteger,
     /**
      * Server public key "B"
      */
-    B: bigint,
+    B: BigInteger,
   ): Promise<SRPClientSessionStep2> {
     if (!salt) {
       throw new Error("Salt (s) must not be null");
@@ -101,18 +102,18 @@ export class SRPClientSessionStep2 {
     /**
      * Client public value "A"
      */
-    public readonly A: bigint,
+    public readonly A: BigInteger,
     /**
      * Client evidence message "M1"
      */
-    public readonly M1: bigint,
+    public readonly M1: BigInteger,
     /**
      * Shared session key "S"
      */
-    public readonly S: bigint,
+    public readonly S: BigInteger,
   ) {}
 
-  public async step3(M2: bigint): Promise<void> {
+  public async step3(M2: BigInteger): Promise<void> {
     if (!M2) {
       throw new Error("Server evidence (M2) must not be null");
     }
@@ -123,7 +124,7 @@ export class SRPClientSessionStep2 {
       this.S,
     );
 
-    if (computedM2 !== M2) {
+    if (!computedM2.equals(M2)) {
       throw new Error("Bad server credentials");
     }
   }
@@ -142,9 +143,9 @@ export class SRPClientSessionStep2 {
   ) {
     return new SRPClientSessionStep2(
       routines,
-      BigInt("0x" + state.A),
-      BigInt("0x" + state.M1),
-      BigInt("0x" + state.S),
+      bigInt(state.A, 16),
+      bigInt(state.M1, 16),
+      bigInt(state.S, 16),
     );
   }
 }

@@ -1,3 +1,4 @@
+import bigInt from "big-integer";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
@@ -10,8 +11,8 @@ import {
 } from "../src/utils";
 import { test } from "./tests";
 
-const ZERO = BigInt(0);
-const ONE = BigInt(1);
+const ZERO = bigInt("0");
+const ONE = bigInt("1");
 
 const TEST_ROUTINES = new SRPRoutines(new SRPParameters());
 

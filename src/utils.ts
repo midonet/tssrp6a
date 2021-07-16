@@ -1,12 +1,13 @@
+import bigInt, { BigInteger } from "big-integer";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 import { crossEnvCrypto } from "./cross-env-crypto";
 
-const ZERO: bigint = BigInt(0);
-const ONE: bigint = BigInt(1);
-const TWO: bigint = BigInt(2);
+const ZERO: BigInteger = bigInt("0");
+const ONE: BigInteger = bigInt("1");
+const TWO: BigInteger = bigInt("2");
 
-export const bigIntToArrayBuffer = (n: bigint): ArrayBuffer => {
+export const bigIntToArrayBuffer = (n: BigInteger): ArrayBuffer => {
   const hex = n.toString(16);
   const arrayBuffer = new ArrayBuffer(Math.ceil(hex.length / 2));
   const u8 = new Uint8Array(arrayBuffer);
@@ -25,13 +26,13 @@ export const bigIntToArrayBuffer = (n: bigint): ArrayBuffer => {
   return arrayBuffer;
 };
 
-export const arrayBufferToBigInt = (arrayBuffer: ArrayBuffer): bigint => {
+export const arrayBufferToBigInt = (arrayBuffer: ArrayBuffer): BigInteger => {
   const hex: string[] = [];
   // we can't use map here because map will return Uint8Array which will screw up the parsing below
   new Uint8Array(arrayBuffer).forEach((i) => {
     hex.push(("0" + i.toString(16)).slice(-2)); // i.toString(16) will transform 01 to 1, so we add it back on and slice takes the last two chars
   });
-  return BigInt(`0x${hex.join("")}`);
+  return bigInt(hex.join(""), 16);
 };
 
 /**
@@ -106,16 +107,16 @@ export function generateRandomString(characterCount: number = 10) {
     .slice(0, characterCount); // so we don't go over when characterCount is odd
 }
 
-export function generateRandomBigInt(numBytes: number = 16): bigint {
+export function generateRandomBigInt(numBytes: number = 16): BigInteger {
   return arrayBufferToBigInt(generateRandom(numBytes));
 }
 
 export async function createVerifier(
   routines: SRPRoutines,
   I: string,
-  s: bigint,
+  s: BigInteger,
   P: string,
-): Promise<bigint> {
+): Promise<BigInteger> {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -134,8 +135,8 @@ export async function createVerifier(
 }
 
 export interface IVerifierAndSalt {
-  v: bigint;
-  s: bigint;
+  v: BigInteger;
+  s: BigInteger;
 }
 
 export async function createVerifierAndSalt(
@@ -155,7 +156,7 @@ export async function createVerifierAndSalt(
 export const hashBitCount = async (
   parameters: SRPParameters,
 ): Promise<number> =>
-  (await hash(parameters, bigIntToArrayBuffer(BigInt(1)))).byteLength * 8;
+  (await hash(parameters, bigIntToArrayBuffer(bigInt("1")))).byteLength * 8;
 
 /**
  * Calculates (x**pow) % mod
@@ -163,7 +164,11 @@ export const hashBitCount = async (
  * @param pow power, non negative power.
  * @param mod modulo, positive modulo for division.
  */
-export function modPow(x: bigint, pow: bigint, mod: bigint): bigint {
+export function modPow(
+  x: BigInteger,
+  pow: BigInteger,
+  mod: BigInteger,
+): BigInteger {
   if (x < ZERO) {
     throw new Error("Invalid base: " + x.toString());
   }
@@ -173,14 +178,14 @@ export function modPow(x: bigint, pow: bigint, mod: bigint): bigint {
   if (mod < ONE) {
     throw new Error("Invalid modulo: " + mod.toString());
   }
-  let result: bigint = ONE;
+  let result: BigInteger = ONE;
   while (pow > ZERO) {
-    if (pow % TWO == ONE) {
-      result = (x * result) % mod;
-      pow -= ONE;
+    if (pow.mod(TWO).equals(ONE)) {
+      result = x.multiply(result).mod(mod);
+      pow = pow.subtract(ONE);
     } else {
-      x = (x * x) % mod;
-      pow /= TWO;
+      x = x.multiply(x).mod(mod);
+      pow = pow.divide(TWO);
     }
   }
   return result;

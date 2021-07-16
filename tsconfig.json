@@ -9,10 +9,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitThis": true,
+    "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": false,
     "typeRoots": ["node_modules/@types", "types"]
   },
   "include": ["src/**/*"]
 }
-

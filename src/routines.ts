@@ -1,3 +1,4 @@
+import bigInt, { BigInteger } from "big-integer";
 import { SRPParameters } from "./parameters";
 import {
   bigIntToArrayBuffer,
@@ -31,7 +32,7 @@ export class SRPRoutines {
     return hashPadded(this.parameters, targetLength, ...as);
   }
 
-  public async computeK(): Promise<bigint> {
+  public async computeK(): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hashPadded(
         bigIntToArrayBuffer(this.parameters.primeGroup.N),
@@ -40,7 +41,7 @@ export class SRPRoutines {
     );
   }
 
-  public async generateRandomSalt(numBytes?: number): Promise<bigint> {
+  public async generateRandomSalt(numBytes?: number): Promise<BigInteger> {
     const HBits = await hashBitCount(this.parameters);
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
@@ -48,7 +49,11 @@ export class SRPRoutines {
     return generateRandomBigInt(saltBytes);
   }
 
-  public async computeX(I: string, s: bigint, P: string): Promise<bigint> {
+  public async computeX(
+    I: string,
+    s: BigInteger,
+    P: string,
+  ): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hash(
         bigIntToArrayBuffer(s),
@@ -58,9 +63,9 @@ export class SRPRoutines {
   }
 
   public async computeXStep2(
-    s: bigint,
+    s: BigInteger,
     identityHash: ArrayBuffer,
-  ): Promise<bigint> {
+  ): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hash(bigIntToArrayBuffer(s), identityHash),
     );
@@ -70,7 +75,7 @@ export class SRPRoutines {
     return await this.hash(stringToArrayBuffer(P));
   }
 
-  public computeVerifier(x: bigint): bigint {
+  public computeVerifier(x: BigInteger): BigInteger {
     return modPow(
       this.parameters.primeGroup.g,
       x,
@@ -78,18 +83,18 @@ export class SRPRoutines {
     );
   }
 
-  public generatePrivateValue(): bigint {
+  public generatePrivateValue(): BigInteger {
     const numBits = Math.max(256, this.parameters.NBits);
-    let bi: bigint;
+    let bi: BigInteger;
 
     do {
-      bi = generateRandomBigInt(numBits / 8) % this.parameters.primeGroup.N;
-    } while (bi === BigInt(0));
+      bi = generateRandomBigInt(numBits / 8).mod(this.parameters.primeGroup.N);
+    } while (bi.equals(bigInt("0")));
 
     return bi;
   }
 
-  public computeClientPublicValue(a: bigint): bigint {
+  public computeClientPublicValue(a: BigInteger): BigInteger {
     return modPow(
       this.parameters.primeGroup.g,
       a,
@@ -97,11 +102,11 @@ export class SRPRoutines {
     );
   }
 
-  public isValidPublicValue(value: bigint): boolean {
-    return value % this.parameters.primeGroup.N !== BigInt(0);
+  public isValidPublicValue(value: BigInteger): boolean {
+    return !value.mod(this.parameters.primeGroup.N).equals(bigInt("0"));
   }
 
-  public async computeU(A: bigint, B: bigint): Promise<bigint> {
+  public async computeU(A: BigInteger, B: BigInteger): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hashPadded(bigIntToArrayBuffer(A), bigIntToArrayBuffer(B)),
     );
@@ -109,11 +114,11 @@ export class SRPRoutines {
 
   public async computeClientEvidence(
     _I: string,
-    _s: bigint,
-    A: bigint,
-    B: bigint,
-    S: bigint,
-  ): Promise<bigint> {
+    _s: BigInteger,
+    A: BigInteger,
+    B: BigInteger,
+    S: BigInteger,
+  ): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hash(
         bigIntToArrayBuffer(A),
@@ -124,10 +129,10 @@ export class SRPRoutines {
   }
 
   public async computeServerEvidence(
-    A: bigint,
-    M1: bigint,
-    S: bigint,
-  ): Promise<bigint> {
+    A: BigInteger,
+    M1: BigInteger,
+    S: BigInteger,
+  ): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hash(
         bigIntToArrayBuffer(A),
@@ -138,16 +143,16 @@ export class SRPRoutines {
   }
 
   public computeClientSessionKey(
-    k: bigint,
-    x: bigint,
-    u: bigint,
-    a: bigint,
-    B: bigint,
-  ): bigint {
+    k: BigInteger,
+    x: BigInteger,
+    u: BigInteger,
+    a: BigInteger,
+    B: BigInteger,
+  ): BigInteger {
     const N = this.parameters.primeGroup.N;
-    const exp = u * x + a;
-    const tmp = (modPow(this.parameters.primeGroup.g, x, N) * k) % N;
+    const exp = u.multiply(x).add(a);
+    const tmp = modPow(this.parameters.primeGroup.g, x, N).multiply(k).mod(N);
 
-    return modPow(B + N - tmp, exp, N);
+    return modPow(B.add(N).subtract(tmp), exp, N);
   }
 }
