@@ -16,7 +16,6 @@
     "big-integer": "^1.6.48"
   },
   "devDependencies": {
-    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/node": "^16.3.3",
     "@types/tape-promise": "^4.0.1",
     "@typescript-eslint/eslint-plugin": "^4.28.3",
@@ -28,7 +27,7 @@
     "prettier-plugin-organize-imports": "^2.2.0",
     "source-map-support": "^0.5.19",
     "tap-diff": "^0.1.1",
-    "tap-junit": "^5.0.0",
+    "tap-nyc": "^1.0.3",
     "tape": "^5.2.2",
     "tape-promise": "^4.0.0",
     "ts-node": "^10.1.0",
@@ -37,14 +36,10 @@
   "scripts": {
     "build": "yarn clean && microbundle -f cjs,esm src/index.ts",
     "clean": "rm -rf dist",
-    "test": "yarn tape 'test/**/*.test.*' -r ts-node/register",
-    "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
-    "nyc": "nyc -e .ts -x 'src/cross-env-crypto.ts' -x 'test/**'",
-    "coverage": "yarn nyc yarn test:report",
-    "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report",
-    "coverage:number": "yarn coverage | grep 'All files' | cut -d '|' -f 5 | sed 's/ //g'",
     "format": "prettier '**/*.{js,md,ts,tsx}'",
     "lint": "yarn format --check && yarn eslint src test",
+    "test": "tape 'test/**/*.test.ts' -r ts-node/register",
+    "test:coverage": "nyc -x 'src/cross-env-crypto.ts' -x 'test/**' yarn test | tap-nyc",
     "tscheck": "tsc --noEmit"
   },
   "description": "SRP6a client and server lib",

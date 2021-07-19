@@ -1,7 +1,7 @@
 import tape from "tape-promise/tape";
-const tapDiff: () => any = require("tap-diff"); // eslint-disable-line @typescript-eslint/no-var-requires
 
-if (!process.env["TAPE_RAW_OUTPUT"]) {
+if (!process.env["NYC_PROCESS_ID"]) {
+  const tapDiff: () => any = require("tap-diff"); // eslint-disable-line @typescript-eslint/no-var-requires
   tape.createStream().pipe(tapDiff()).pipe(process.stdout);
 }
 
