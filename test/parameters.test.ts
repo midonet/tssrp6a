@@ -28,11 +28,12 @@ test("hash bit count", async (t) => {
 
 test("Size of N is correct", (t) => {
   t.plan(1);
+  const primeGroups = Object.keys(SRPParameters.PrimeGroup);
   // Yes, the 256 bits number is actually 257 bits number
   // https://groups.google.com/forum/#!topic/clipperz/DJFqZYHv2qk
-  const expectedSizeInBytes: number[] = [33, 64, 96, 128, 192, 256];
-  const actualSizeInBytes: number[] = new Array(6).fill(0);
-  Object.keys(SRPParameters.PrimeGroup).map((key, idx) => {
+  const expectedSizeInBytes: number[] = [128, 192, 256, 384, 512, 768, 1024];
+  const actualSizeInBytes: number[] = new Array(primeGroups.length).fill(0);
+  primeGroups.map((key, idx) => {
     actualSizeInBytes[idx] = bigIntToArrayBuffer(
       SRPParameters.PrimeGroup[key].N,
     ).byteLength;
