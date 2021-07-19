@@ -1,5 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
-import { crossEnvCrypto } from "./cross-env-crypto";
+import { sha512 } from "./cross-env-crypto";
 
 export interface PrimeGroup {
   N: BigInteger; // the prime
@@ -11,13 +11,11 @@ export type HashFunction = (data: ArrayBuffer) => Promise<ArrayBuffer>;
 export class SRPParameters {
   public static PrimeGroup: { [key: number]: PrimeGroup };
 
-  public static H: { [key: string]: HashFunction };
-
   public readonly NBits: number;
 
   constructor(
     public readonly primeGroup: PrimeGroup = SRPParameters.PrimeGroup[2048],
-    public readonly H: HashFunction = SRPParameters.H["SHA512"],
+    public readonly H: HashFunction = sha512,
   ) {
     this.NBits = this.primeGroup.N.toString(2).length;
 
@@ -180,11 +178,4 @@ FC026E47 9558E447 5677E9AA 9E3050E2 765694DF C81F56E8 80B96E71
 60C980DD 98EDD3DF FFFFFFFF FFFFFFFF`),
     g: bigInt("19"),
   },
-};
-
-SRPParameters.H = {
-  SHA1: crossEnvCrypto.hashFunctions["SHA1"],
-  SHA256: crossEnvCrypto.hashFunctions["SHA256"],
-  SHA384: crossEnvCrypto.hashFunctions["SHA384"],
-  SHA512: crossEnvCrypto.hashFunctions["SHA512"],
 };

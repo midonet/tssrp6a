@@ -1,5 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
-import { crossEnvCrypto } from "./cross-env-crypto";
+import { randomBytes } from "./cross-env-crypto";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
 
@@ -94,7 +94,7 @@ export const hashPadded = (
  */
 export const generateRandomString = (characterCount: number = 10) => {
   const u8 = new Uint8Array(Math.ceil(Math.ceil(characterCount / 2))); // each byte has 2 hex digits
-  crossEnvCrypto.randomBytes(u8);
+  randomBytes(u8);
   return u8
     .reduce((str, i) => {
       const hex = i.toString(16).toString();
@@ -191,6 +191,6 @@ export const modPow = (
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);
-  crossEnvCrypto.randomBytes(u8);
+  randomBytes(u8);
   return u8.buffer;
 };

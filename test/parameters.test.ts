@@ -1,3 +1,4 @@
+import { sha1, sha512 } from "../src/cross-env-crypto";
 import { SRPParameters } from "../src/parameters";
 import { bigIntToArrayBuffer, hashBitCount } from "../src/utils";
 import { test } from "./tests";
@@ -13,16 +14,20 @@ test("no hash function", (t) => {
 });
 
 test("hash bit count", async (t) => {
-  t.plan(4);
-  const expectedBitSize = [160, 256, 384, 512];
-  await Promise.all(
-    Object.keys(SRPParameters.H).map(async (key, idx) => {
-      const parameters = new SRPParameters(
-        SRPParameters.PrimeGroup[2048],
-        SRPParameters.H[key],
-      );
-      t.equals(expectedBitSize[idx], await hashBitCount(parameters), key);
-    }),
+  t.plan(2);
+
+  t.equals(
+    await hashBitCount(new SRPParameters(SRPParameters.PrimeGroup[2048], sha1)),
+    160,
+    "SHA-1",
+  );
+
+  t.equals(
+    await hashBitCount(
+      new SRPParameters(SRPParameters.PrimeGroup[2048], sha512),
+    ),
+    512,
+    "SHA-512",
   );
 });
 

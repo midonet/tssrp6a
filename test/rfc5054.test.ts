@@ -1,4 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
+import { sha1 } from "../src/cross-env-crypto";
 import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
@@ -14,7 +15,7 @@ test("#SRP6aRFC5054", async (t) => {
     16,
   );
   const g = bigInt("2");
-  const parameters = new SRPParameters({ N, g }, SRPParameters.H["SHA1"]);
+  const parameters = new SRPParameters({ N, g }, sha1);
   const username = "alice";
   const password = "password123";
 
