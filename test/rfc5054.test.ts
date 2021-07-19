@@ -63,8 +63,8 @@ test("#SRP6aRFC5054", async (t) => {
     "X step 1",
   );
   t.equals(
-    verifier.toString(16),
     "7e273de8696ffc4f4e337d05b4b375beb0dde1569e8fa00a9886d8129bada1f1822223ca1a605b530e379ba4729fdc59f105b4787e5186f5c671085a1447b52a48cf1970b4fb6f8400bbf4cebfbb168152e08ab5ea53d15c1aff87b2b9da6e04e058ad51cc72bfc9033b564e26480d78e955a5e29e7ab245db2be315e2099afb",
+    verifier.toString(16),
     "Verifier",
   );
   const client = await new SRPClientSession(clientRoutines).step1(
