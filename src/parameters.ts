@@ -27,9 +27,8 @@ export class SRPParameters {
   }
 }
 
-function bigIntFromHex(hex: string): BigInteger {
-  return bigInt(hex.replace(/\s+/g, ""), 16);
-}
+const bigIntFromHex = (hex: string): BigInteger =>
+  bigInt(hex.replace(/\s+/g, ""), 16);
 
 // From https://datatracker.ietf.org/doc/html/rfc5054#appendix-A
 SRPParameters.PrimeGroup = {

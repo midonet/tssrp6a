@@ -39,9 +39,8 @@ export const arrayBufferToBigInt = (arrayBuffer: ArrayBuffer): BigInteger => {
  * Convert some string into ArrayBuffer.
  * @param str Any UTF8 string, like a username, email, or password
  */
-export function stringToArrayBuffer(str: string): ArrayBuffer {
-  return new TextEncoder().encode(str).buffer;
-}
+export const stringToArrayBuffer = (str: string): ArrayBuffer =>
+  new TextEncoder().encode(str).buffer;
 
 /**
  * Left pad ArrayBuffer with zeroes.
@@ -64,10 +63,10 @@ export const padStartArrayBuffer = (
   return u8;
 };
 
-export function hash(
+export const hash = (
   parameters: SRPParameters,
   ...arrays: ArrayBuffer[]
-): Promise<ArrayBuffer> {
+): Promise<ArrayBuffer> => {
   const length = arrays.reduce((p, c) => p + c.byteLength, 0);
   const target = new Uint8Array(length);
   for (let offset = 0, i = 0; i < arrays.length; i++) {
@@ -75,25 +74,25 @@ export function hash(
     offset += arrays[i].byteLength;
   }
   return parameters.H(target);
-}
+};
 
-export function hashPadded(
+export const hashPadded = (
   parameters: SRPParameters,
   targetLen: number,
   ...arrays: ArrayBuffer[]
-): Promise<ArrayBuffer> {
+): Promise<ArrayBuffer> => {
   const arraysPadded = arrays.map((arrayBuffer) =>
     padStartArrayBuffer(arrayBuffer, targetLen),
   );
   return hash(parameters, ...arraysPadded);
-}
+};
 
 /**
  * Generates random string of ASCII characters using crypto secure random generator.
  * @param characterCount The length of the result string.
  * @return The string.
  */
-export function generateRandomString(characterCount: number = 10) {
+export const generateRandomString = (characterCount: number = 10) => {
   const u8 = new Uint8Array(Math.ceil(Math.ceil(characterCount / 2))); // each byte has 2 hex digits
   crossEnvCrypto.randomBytes(u8);
   return u8
@@ -105,18 +104,17 @@ export function generateRandomString(characterCount: number = 10) {
       return str + hex;
     }, "")
     .slice(0, characterCount); // so we don't go over when characterCount is odd
-}
+};
 
-export function generateRandomBigInt(numBytes: number = 16): BigInteger {
-  return arrayBufferToBigInt(generateRandom(numBytes));
-}
+export const generateRandomBigInt = (numBytes: number = 16): BigInteger =>
+  arrayBufferToBigInt(generateRandom(numBytes));
 
-export async function createVerifier(
+export const createVerifier = async (
   routines: SRPRoutines,
   I: string,
   s: BigInteger,
   P: string,
-): Promise<BigInteger> {
+): Promise<BigInteger> => {
   if (!I || !I.trim()) {
     throw new Error("Identity (I) must not be null or empty.");
   }
@@ -132,26 +130,26 @@ export async function createVerifier(
   const x = await routines.computeX(I, s, P);
 
   return routines.computeVerifier(x);
-}
+};
 
 export interface IVerifierAndSalt {
   v: BigInteger;
   s: BigInteger;
 }
 
-export async function createVerifierAndSalt(
+export const createVerifierAndSalt = async (
   routines: SRPRoutines,
   I: string,
   P: string,
   sBytes?: number,
-): Promise<IVerifierAndSalt> {
+): Promise<IVerifierAndSalt> => {
   const s = await routines.generateRandomSalt(sBytes);
 
   return {
     s,
     v: await createVerifier(routines, I, s, P),
   };
-}
+};
 
 export const hashBitCount = async (
   parameters: SRPParameters,
@@ -164,11 +162,11 @@ export const hashBitCount = async (
  * @param pow power, non negative power.
  * @param mod modulo, positive modulo for division.
  */
-export function modPow(
+export const modPow = (
   x: BigInteger,
   pow: BigInteger,
   mod: BigInteger,
-): BigInteger {
+): BigInteger => {
   if (x < ZERO) {
     throw new Error("Invalid base: " + x.toString());
   }
@@ -189,7 +187,7 @@ export function modPow(
     }
   }
   return result;
-}
+};
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);
