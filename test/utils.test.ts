@@ -15,6 +15,7 @@ import { test } from "./tests";
 
 const ZERO = bigInt("0");
 const ONE = bigInt("1");
+const MINUS_ONE = bigInt("-1");
 
 test("#generateRandomString", (t) => {
   t.plan(2);
@@ -79,7 +80,7 @@ test("#bigIntToArrayBuffer", (t) => {
 
   t.deepLooseEqual(
     Uint8Array.from([0xff]),
-    new Uint8Array(bigIntToArrayBuffer(ONE.negate())),
+    new Uint8Array(bigIntToArrayBuffer(MINUS_ONE)),
     "Negative values are partially supported",
   );
 
@@ -166,17 +167,17 @@ test("#modPow invalid inputs", (t) => {
   t.plan(6);
 
   t.throws(
-    () => modPow(ONE.negate(), ONE, ONE),
+    () => modPow(MINUS_ONE, ONE, ONE),
     /Invalid base/,
     "Invalid base, negative",
   );
   t.throws(
-    () => modPow(ONE, ONE.negate(), ONE),
+    () => modPow(ONE, MINUS_ONE, ONE),
     /Invalid power/,
     "Invalid power, negative",
   );
   t.throws(
-    () => modPow(ONE, ONE, ONE.negate()),
+    () => modPow(ONE, ONE, MINUS_ONE),
     /Invalid modulo/,
     "Invalid modulo, negative",
   );
@@ -191,7 +192,7 @@ test("#modPow invalid inputs", (t) => {
     "Invalid base, bit negative",
   );
   t.throws(
-    () => modPow(ONE.negate(), ONE.negate(), ONE.negate()),
+    () => modPow(MINUS_ONE, MINUS_ONE, MINUS_ONE),
     /Invalid base/,
     "All invalids",
   );
