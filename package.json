@@ -9,6 +9,9 @@
   ],
   "types": "dist/index.d.ts",
   "private": false,
+  "prettier": {
+    "trailingComma": "all"
+  },
   "dependencies": {
     "big-integer": "^1.6.48"
   },
@@ -22,6 +25,7 @@
     "microbundle": "^0.13.3",
     "nyc": "^15.1.0",
     "prettier": "^2.3.2",
+    "prettier-plugin-organize-imports": "^2.2.0",
     "source-map-support": "^0.5.19",
     "tap-diff": "^0.1.1",
     "tap-junit": "^5.0.0",
@@ -39,9 +43,8 @@
     "coverage": "yarn nyc yarn test:report",
     "coverage:report": "yarn nyc --reporter cobertura --reporter html --report-dir reports/unit yarn test:report",
     "coverage:number": "yarn coverage | grep 'All files' | cut -d '|' -f 5 | sed 's/ //g'",
-    "lint_formatter": "prettier -c 'src/**' 'test/**'",
-    "lint": "yarn lint_formatter && yarn eslint src test",
-    "format": "prettier --write 'src/**' 'test/**'",
+    "format": "prettier '**/*.{js,md,ts,tsx}'",
+    "lint": "yarn format --check && yarn eslint src test",
     "tscheck": "tsc --noEmit"
   },
   "description": "SRP6a client and server lib",

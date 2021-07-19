@@ -28,6 +28,7 @@ native support, or a polyfill which is not included.
 **Note**: This module makes use of [`Crypto.subtle`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/subtle) and therefore only works on HTTPS.
 
 ## Usage
+
 ### Signup / registration
 
 [![Diagram](docs/signup.svg)](https://mermaidjs.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgcGFydGljaXBhbnQgQiBhcyBCcm93c2VyXG4gICAgcGFydGljaXBhbnQgUyBhcyBTZXJ2ZXJcbiAgICBOb3RlIGxlZnQgb2YgQjogVXNlciBlbnRlcnM8YnIvPmlkLCBwYXNzd29yZFxuICAgIEItPj5COiBzYWx0ID0gY2xpZW50LmdlbmVyYXRlUmFuZG9tU2FsdCgpXG4gICAgQi0-PkI6IGNsaWVudC5nZW5lcmF0ZVZlcmlmaWVyKHNhbHQsIGlkLCBwYXNzd29yZClcbiAgICBCLT4-UzogZW1haWwsIHNhbHQsIHZlcmlmaWVyXG4gICAgTm90ZSByaWdodCBvZiBTOiBzYXZlIGJ5IGlkOjxici8-c2FsdCwgdmVyaWZpZXJcbiIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In19)
@@ -35,6 +36,7 @@ native support, or a polyfill which is not included.
 The user requests a registration page, the browser will generate a salt and take the user's identity and password and generate a verifier.  
 The browser sends email, salt, verifier to server. The server saves this to storage.
 Here is a complete example of signup:
+
 ```JavaScript
 import {
  createVerifierAndSalt, SRPParameters, SRPRoutines,
@@ -69,6 +71,7 @@ Browser may additionally verify the authority of the server from `M2` with step3
 Note: `a` and `b` are generated for one authentication "session" and discarded immediately.
 
 Here is a complete example of authentication session:
+
 ```JavaScript
 import {
  createVerifierAndSalt, SRPClientSession, SRPParameters, SRPRoutines,
@@ -125,7 +128,7 @@ The SRP protocol and therefore this library is stateful. Each step sets various 
 const serverStep1 = await new SRPServerSession(TEST_ROUTINES).step1(...); // Each step returns a class, in this case .step1 returns SRPServerSessionStep1
 
 const serializedServerStep1 = JSON.stringify(serverStep1); // Some of the step methods (see below for which ones) have a .toJSON method that returns the internal state. JSON.stringify calls .toJSON
-// you can now store serializedServerStep1 in a database or elsewhere. There are security implications, see below. 
+// you can now store serializedServerStep1 in a database or elsewhere. There are security implications, see below.
 
 // when you are ready to restore the state, call fromState on the same step class used to serialize the data (in this case SRPServerSessionStep1) to deserialize
 const deserializedServerStep1 = SRPServerSessionStep1.fromState(
@@ -146,8 +149,9 @@ While the password is **never** kept directly in the state, hashes of it are. If
 
 ## Notes
 
-This package's default configuration matches the following Java's 
+This package's default configuration matches the following Java's
 [Nimbus SRP](https://connect2id.com/products/nimbus-srp) configuration:
+
 ```Java
 SRP6CryptoParams.getInstance(2048, "SHA-512")
 ```

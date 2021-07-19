@@ -1,4 +1,4 @@
-export { SRPParameters, HashFunction, PrimeGroup } from "./parameters";
+export { HashFunction, PrimeGroup, SRPParameters } from "./parameters";
 export { SRPRoutines } from "./routines";
 export {
   SRPClientSession,
@@ -13,9 +13,9 @@ export {
   SRPServerSessionStep1State,
 } from "./session-server";
 export {
-  createVerifierAndSalt,
-  IVerifierAndSalt,
-  bigIntToArrayBuffer,
   arrayBufferToBigInt,
+  bigIntToArrayBuffer,
+  createVerifierAndSalt,
   generateRandomBigInt,
+  IVerifierAndSalt,
 } from "./utils";

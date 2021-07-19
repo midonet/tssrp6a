@@ -1,7 +1,7 @@
 import bigInt, { BigInteger } from "big-integer";
+import { crossEnvCrypto } from "./cross-env-crypto";
 import { SRPParameters } from "./parameters";
 import { SRPRoutines } from "./routines";
-import { crossEnvCrypto } from "./cross-env-crypto";
 
 const ZERO: BigInteger = bigInt("0");
 const ONE: BigInteger = bigInt("1");
