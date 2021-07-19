@@ -1,5 +1,4 @@
 import bigInt, { BigInteger } from "big-integer";
-import { hashFunctions } from "../src/cross-env-crypto";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
@@ -42,15 +41,9 @@ test("#SRP6aRFC5054", async (t) => {
     }
   }
 
-  const clientRoutines = new TestClientRoutines(
-    { N, g },
-    hashFunctions["SHA-1"],
-  );
+  const clientRoutines = new TestClientRoutines({ N, g }, "SHA-1");
 
-  const serverRoutines = new TestServerRoutines(
-    { N, g },
-    hashFunctions["SHA-1"],
-  );
+  const serverRoutines = new TestServerRoutines({ N, g }, "SHA-1");
 
   const salt = bigInt("BEB25379D1A8581EB5A727673A2441EE", 16);
   const verifier = await createVerifier(

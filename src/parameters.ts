@@ -1,5 +1,7 @@
 import bigInt, { BigInteger } from "big-integer";
 
+export type KnownPrimeGroups = 1024 | 1536 | 2048 | 3072 | 4096 | 6144 | 8192;
+
 export type PrimeGroup = {
   N: BigInteger; // the prime
   g: BigInteger; // a generator of the multiplicative group Zn
@@ -9,7 +11,7 @@ const bigIntFromHex = (hex: string): BigInteger =>
   bigInt(hex.replace(/\s+/g, ""), 16);
 
 // From https://datatracker.ietf.org/doc/html/rfc5054#appendix-A
-export const knownPrimeGroups = {
+export const knownPrimeGroups: Record<KnownPrimeGroups, PrimeGroup> = {
   1024: {
     N: bigIntFromHex(`
 EEAF0AB9 ADB38DD6 9C33F80A FA8FC5E8 60726187 75FF3C0B 9EA2314C

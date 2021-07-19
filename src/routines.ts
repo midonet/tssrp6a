@@ -1,6 +1,6 @@
 import bigInt, { BigInteger } from "big-integer";
-import { hashFunctions } from "./cross-env-crypto";
-import { knownPrimeGroups, PrimeGroup } from "./parameters";
+import { HashAlgorithm, HashFunction, hashFunctions } from "./cross-env-crypto";
+import { KnownPrimeGroups, knownPrimeGroups, PrimeGroup } from "./parameters";
 import {
   arrayBufferToBigInt,
   bigIntToArrayBuffer,
@@ -22,15 +22,23 @@ import {
  */
 
 export class SRPRoutines {
+  public readonly primeGroup: PrimeGroup;
+  public readonly H: HashFunction;
   public readonly NBits: number;
 
   constructor(
-    public readonly primeGroup: PrimeGroup = knownPrimeGroups[2048],
-    public readonly H = hashFunctions["SHA-512"],
+    public readonly _primeGroup: KnownPrimeGroups | PrimeGroup = 2048,
+    public readonly _H: HashAlgorithm | HashFunction = "SHA-512",
   ) {
+    this.primeGroup =
+      typeof _primeGroup === "number"
+        ? knownPrimeGroups[_primeGroup]
+        : _primeGroup;
+
+    this.H = typeof _H === "string" ? hashFunctions[_H] : _H;
     this.NBits = this.primeGroup.N.toString(2).length;
 
-    if (!H) {
+    if (!this.H) {
       throw new Error("Hash function required");
     }
   }

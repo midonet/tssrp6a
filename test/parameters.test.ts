@@ -1,5 +1,4 @@
 import { SRPRoutines } from "../src";
-import { hashFunctions } from "../src/cross-env-crypto";
 import { knownPrimeGroups } from "../src/parameters";
 import { bigIntToArrayBuffer, hashBitCount } from "../src/utils";
 import { test } from "./tests";
@@ -10,41 +9,29 @@ test("existing hash", (t) => {
 });
 
 test("no hash function", (t) => {
-  t.throws(() => new SRPRoutines(knownPrimeGroups[2048], null!).H);
+  t.throws(() => new SRPRoutines(2048, null!).H);
   t.end();
 });
 
 test("hash bit count", async (t) => {
   t.plan(4);
 
-  t.equals(
-    await hashBitCount(
-      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-1"]).H,
-    ),
-    160,
-    "SHA-1",
-  );
+  t.equals(await hashBitCount(new SRPRoutines(2048, "SHA-1").H), 160, "SHA-1");
 
   t.equals(
-    await hashBitCount(
-      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-256"]).H,
-    ),
+    await hashBitCount(new SRPRoutines(2048, "SHA-256").H),
     256,
     "SHA-256",
   );
 
   t.equals(
-    await hashBitCount(
-      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-384"]).H,
-    ),
+    await hashBitCount(new SRPRoutines(2048, "SHA-384").H),
     384,
     "SHA-384",
   );
 
   t.equals(
-    await hashBitCount(
-      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-512"]).H,
-    ),
+    await hashBitCount(new SRPRoutines(2048, "SHA-512").H),
     512,
     "SHA-512",
   );
