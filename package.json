@@ -1,6 +1,7 @@
 {
   "name": "tssrp6a",
   "version": "3.0.0",
+  "module": "dist/index.esm.js",
   "main": "dist/index.js",
   "files": [
     "dist/**/*",
@@ -13,27 +14,23 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
-    "@magic-works/ttypescript-browser-like-import-transformer": "^3.0.0",
-    "@types/crypto-js": "3.1.43",
-    "@types/jsbn": "1.2.29",
     "@types/node": "^15.0.3",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
-    "@zoltu/typescript-transformer-append-js-extension": "^1.0.1",
     "eslint": "^7.26.0",
+    "microbundle": "^0.13.3",
     "nyc": "^15.1.0",
     "prettier": "^2.3.0",
-    "source-map-support": "^0.5.19",
     "tap-diff": "^0.1.1",
     "tap-junit": "^4.2.0",
     "tape": "^5.2.2",
     "tape-promise": "^4.0.0",
     "ts-node": "^9.1.1",
-    "ttypescript": "^1.5.12",
     "typescript": "^4.3.5"
   },
   "scripts": {
-    "build": "yarn tsc --build tsconfig.json",
+    "build": "yarn clean && microbundle -f cjs,esm src/index.ts",
+    "clean": "rm -rf dist",
     "test": "yarn tape 'test/**/*.test.*' -r ts-node/register",
     "test:report": "TAPE_RAW_OUTPUT=1 yarn test | yarn tap-junit -o reports -n unit",
     "nyc": "nyc -e .ts -x 'src/cross-env-crypto.ts' -x 'test/**'",

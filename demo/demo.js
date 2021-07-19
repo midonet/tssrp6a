@@ -1,6 +1,6 @@
 import {
   createVerifierAndSalt, SRPClientSession, SRPParameters, SRPRoutines, SRPServerSession
-} from "../dist/esm/index.js";
+} from "../dist/index.esm.js";
 
 const steps = [
 {
@@ -14,7 +14,7 @@ const steps = [
   SRPClientSession,
   SRPParameters,
   SRPRoutines
-} from "../dist/esm/index.js";`,
+} from "../dist/index.esm.js";`,
   fakecode: true,
 },
 {
@@ -82,7 +82,7 @@ const db = {[username]: [s, v]};
   SRPParameters,
   SRPRoutines,
   SRPServerSession
-} from "../dist/esm/index.js";`,
+} from "../dist/index.esm.js";`,
   fakecode: true,
 },
 {
