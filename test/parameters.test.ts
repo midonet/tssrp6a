@@ -15,7 +15,7 @@ test("no hash function", (t) => {
 });
 
 test("hash bit count", async (t) => {
-  t.plan(2);
+  t.plan(4);
 
   t.equals(
     await hashBitCount(
@@ -23,6 +23,22 @@ test("hash bit count", async (t) => {
     ),
     160,
     "SHA-1",
+  );
+
+  t.equals(
+    await hashBitCount(
+      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-256"]).H,
+    ),
+    256,
+    "SHA-256",
+  );
+
+  t.equals(
+    await hashBitCount(
+      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-384"]).H,
+    ),
+    384,
+    "SHA-384",
   );
 
   t.equals(
