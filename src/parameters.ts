@@ -17,7 +17,7 @@ export class SRPParameters {
 
   constructor(
     public readonly primeGroup: PrimeGroup = SRPParameters.PrimeGroup[2048],
-    public readonly H: HashFunction = SRPParameters.H.SHA512,
+    public readonly H: HashFunction = SRPParameters.H["SHA512"],
   ) {
     this.NBits = this.primeGroup.N.toString(2).length;
 
@@ -191,8 +191,8 @@ SRPParameters.PrimeGroup = {
 };
 
 SRPParameters.H = {
-  SHA1: crossEnvCrypto.hashFunctions.SHA1,
-  SHA256: crossEnvCrypto.hashFunctions.SHA256,
-  SHA384: crossEnvCrypto.hashFunctions.SHA384,
-  SHA512: crossEnvCrypto.hashFunctions.SHA512,
+  SHA1: crossEnvCrypto.hashFunctions["SHA1"],
+  SHA256: crossEnvCrypto.hashFunctions["SHA256"],
+  SHA384: crossEnvCrypto.hashFunctions["SHA384"],
+  SHA512: crossEnvCrypto.hashFunctions["SHA512"],
 };

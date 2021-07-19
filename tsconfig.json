@@ -1,18 +1,27 @@
 {
+  "include": ["src/**/*"],
   "compilerOptions": {
-    "outDir": "./dist",
-    "sourceMap": true,
+    "target": "ES2015",
+    "module": "ES2015",
+    "lib": ["ES2015", "DOM"],
+    "moduleResolution": "Node",
+
     "declaration": true,
-    "module": "commonjs",
-    "target": "es6",
-    "allowJs": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitThis": true,
-    "esModuleInterop": true,
+    "noEmit": true,
+    "sourceMap": true,
     "strict": true,
-    "noImplicitAny": false,
-    "typeRoots": ["node_modules/@types", "types"]
-  },
-  "include": ["src/**/*"]
+    "stripInternal": true,
+
+    "allowSyntheticDefaultImports": true,
+
+    // https://www.typescriptlang.org/tsconfig#Type_Checking_6248
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
 }
