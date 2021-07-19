@@ -19,11 +19,14 @@ test("#SRP6aRFC5054", async (t) => {
   const password = "password123";
 
   class TestClientRoutines extends SRPRoutines {
-    public computeIdentityHash(I: string, P: string): Promise<ArrayBuffer> {
+    public override computeIdentityHash(
+      I: string,
+      P: string,
+    ): Promise<ArrayBuffer> {
       return this.hash(stringToArrayBuffer(`${I}:${P}`));
     }
 
-    public generatePrivateValue(): BigInteger {
+    public override generatePrivateValue(): BigInteger {
       return bigInt(
         "60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393",
         16,
@@ -32,7 +35,7 @@ test("#SRP6aRFC5054", async (t) => {
   }
 
   class TestServerRoutines extends SRPRoutines {
-    public generatePrivateValue(): BigInteger {
+    public override generatePrivateValue(): BigInteger {
       return bigInt(
         "E487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D105284D20",
         16,

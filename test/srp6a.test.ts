@@ -11,7 +11,10 @@ import { test } from "./tests";
 
 const testParameters = new SRPParameters();
 class SRP6aRoutines extends SRPRoutines {
-  public computeIdentityHash(I: string, P: string): Promise<ArrayBuffer> {
+  public override computeIdentityHash(
+    I: string,
+    P: string,
+  ): Promise<ArrayBuffer> {
     return this.hash(stringToArrayBuffer(`${I}:${P}`));
   }
 }

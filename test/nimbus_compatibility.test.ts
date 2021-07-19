@@ -6,7 +6,7 @@ import { SRPServerSession } from "../src/session-server";
 import { createVerifier } from "../src/utils";
 import { test } from "./tests";
 
-test("#SRPSession compatible with nimbusds java implementation, no U padding", async (t: any) => {
+test("#SRPSession compatible with nimbusds java implementation, no U padding", async (t) => {
   t.plan(3);
 
   class TestRoutines extends SRPRoutines {
@@ -67,7 +67,7 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", a
   t.equals(expectedSessionKey, step2.S.toString(), "Session key is correct");
 });
 
-test("#SRPSession compatible with java nimbus JS, U padding", async (t: any) => {
+test("#SRPSession compatible with java nimbus JS, U padding", async (t) => {
   t.plan(1);
   class TestClientRoutines extends SRPRoutines {
     public override generatePrivateValue(): BigInteger {
