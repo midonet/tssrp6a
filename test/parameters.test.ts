@@ -1,15 +1,16 @@
+import { SRPRoutines } from "../src";
 import { sha1, sha512 } from "../src/cross-env-crypto";
-import { knownPrimeGroups, SRPParameters } from "../src/parameters";
+import { knownPrimeGroups } from "../src/parameters";
 import { bigIntToArrayBuffer, hashBitCount } from "../src/utils";
 import { test } from "./tests";
 
 test("existing hash", (t) => {
-  t.doesNotThrow(() => new SRPParameters());
+  t.doesNotThrow(() => new SRPRoutines().H);
   t.end();
 });
 
 test("no hash function", (t) => {
-  t.throws(() => new SRPParameters(knownPrimeGroups[2048], null!));
+  t.throws(() => new SRPRoutines(knownPrimeGroups[2048], null!).H);
   t.end();
 });
 
@@ -17,13 +18,13 @@ test("hash bit count", async (t) => {
   t.plan(2);
 
   t.equals(
-    await hashBitCount(new SRPParameters(knownPrimeGroups[2048], sha1)),
+    await hashBitCount(new SRPRoutines(knownPrimeGroups[2048], sha1).H),
     160,
     "SHA-1",
   );
 
   t.equals(
-    await hashBitCount(new SRPParameters(knownPrimeGroups[2048], sha512)),
+    await hashBitCount(new SRPRoutines(knownPrimeGroups[2048], sha512).H),
     512,
     "SHA-512",
   );

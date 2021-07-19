@@ -1,4 +1,3 @@
-import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import {
   SRPClientSession,
@@ -9,7 +8,7 @@ import { SRPServerSession, SRPServerSessionStep1 } from "../src/session-server";
 import { createVerifierAndSalt, generateRandomString } from "../src/utils";
 import { test } from "./tests";
 
-const TEST_ROUTINES = new SRPRoutines(new SRPParameters());
+const TEST_ROUTINES = new SRPRoutines();
 
 test("#SRP serialization", async (t) => {
   const testUsername = generateRandomString(10);

@@ -1,4 +1,3 @@
-import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
@@ -9,7 +8,6 @@ import {
 } from "../src/utils";
 import { test } from "./tests";
 
-const testParameters = new SRPParameters();
 class SRP6aRoutines extends SRPRoutines {
   public override computeIdentityHash(
     I: string,
@@ -18,7 +16,7 @@ class SRP6aRoutines extends SRPRoutines {
     return this.hash(stringToArrayBuffer(`${I}:${P}`));
   }
 }
-const srp6aRoutines = new SRP6aRoutines(testParameters);
+const srp6aRoutines = new SRP6aRoutines();
 
 test("#SRP6aSession success", async (t) => {
   t.plan(1);
@@ -65,7 +63,7 @@ test("#SRP6aSession config mismatch", async (t) => {
   const testUsername = "testUser";
   const testPassword = "testPassword";
 
-  const defaultRoutines = new SRPRoutines(testParameters);
+  const defaultRoutines = new SRPRoutines();
 
   // Sign up is done using SRP6a verifier
   const { s: salt, v: verifier } = await createVerifierAndSalt(

@@ -1,24 +1,9 @@
 import bigInt, { BigInteger } from "big-integer";
-import { sha512 } from "./cross-env-crypto";
 
-export type HashFunction = (data: ArrayBuffer) => Promise<ArrayBuffer>;
-
-export class SRPParameters {
-  public static PrimeGroup: { [key: number]: any };
-
-  public readonly NBits: number;
-
-  constructor(
-    public readonly primeGroup: any = knownPrimeGroups[2048],
-    public readonly H: HashFunction = sha512,
-  ) {
-    this.NBits = this.primeGroup.N.toString(2).length;
-
-    if (!H) {
-      throw new Error("Hash function required");
-    }
-  }
-}
+export type PrimeGroup = {
+  N: BigInteger; // the prime
+  g: BigInteger; // a generator of the multiplicative group Zn
+};
 
 const bigIntFromHex = (hex: string): BigInteger =>
   bigInt(hex.replace(/\s+/g, ""), 16);

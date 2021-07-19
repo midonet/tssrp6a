@@ -1,5 +1,4 @@
 import bigInt from "big-integer";
-import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import {
   arrayBufferToBigInt,
@@ -55,7 +54,7 @@ test("#stringToArrayBuffer", (t) => {
 });
 
 test("#createVerifierHexSalt errors", async (t) => {
-  const routines = new SRPRoutines(new SRPParameters());
+  const routines = new SRPRoutines();
   const salt = generateRandomBigInt();
   await t.rejects(() => createVerifier(routines, "", salt, "password"));
   await t.rejects(() => createVerifier(routines, " ", salt, "password"));

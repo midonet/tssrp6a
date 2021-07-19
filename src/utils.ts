@@ -1,6 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
-import { randomBytes } from "./cross-env-crypto";
-import { SRPParameters } from "./parameters";
+import { HashFunction, randomBytes } from "./cross-env-crypto";
 import { SRPRoutines } from "./routines";
 
 const ZERO: BigInteger = bigInt("0");
@@ -64,7 +63,7 @@ export const padStartArrayBuffer = (
 };
 
 export const hash = (
-  parameters: SRPParameters,
+  H: HashFunction,
   ...arrays: ArrayBuffer[]
 ): Promise<ArrayBuffer> => {
   const length = arrays.reduce((p, c) => p + c.byteLength, 0);
@@ -73,18 +72,18 @@ export const hash = (
     target.set(new Uint8Array(arrays[i]), offset);
     offset += arrays[i].byteLength;
   }
-  return parameters.H(target);
+  return H(target);
 };
 
 export const hashPadded = (
-  parameters: SRPParameters,
+  H: HashFunction,
   targetLen: number,
   ...arrays: ArrayBuffer[]
 ): Promise<ArrayBuffer> => {
   const arraysPadded = arrays.map((arrayBuffer) =>
     padStartArrayBuffer(arrayBuffer, targetLen),
   );
-  return hash(parameters, ...arraysPadded);
+  return hash(H, ...arraysPadded);
 };
 
 /**
@@ -151,10 +150,8 @@ export const createVerifierAndSalt = async (
   };
 };
 
-export const hashBitCount = async (
-  parameters: SRPParameters,
-): Promise<number> =>
-  (await hash(parameters, bigIntToArrayBuffer(bigInt("1")))).byteLength * 8;
+export const hashBitCount = async (H: HashFunction): Promise<number> =>
+  (await hash(H, bigIntToArrayBuffer(bigInt("1")))).byteLength * 8;
 
 /**
  * Calculates (x**pow) % mod

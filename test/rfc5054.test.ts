@@ -1,6 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
 import { sha1 } from "../src/cross-env-crypto";
-import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
@@ -15,7 +14,6 @@ test("#SRP6aRFC5054", async (t) => {
     16,
   );
   const g = bigInt("2");
-  const parameters = new SRPParameters({ N, g }, sha1);
   const username = "alice";
   const password = "password123";
 
@@ -31,7 +29,7 @@ test("#SRP6aRFC5054", async (t) => {
       return bigInt(
         "60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393",
         16,
-      ).mod(this.parameters.primeGroup.N);
+      ).mod(this.primeGroup.N);
     }
   }
 
@@ -40,13 +38,13 @@ test("#SRP6aRFC5054", async (t) => {
       return bigInt(
         "E487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D105284D20",
         16,
-      ).mod(this.parameters.primeGroup.N);
+      ).mod(this.primeGroup.N);
     }
   }
 
-  const clientRoutines = new TestClientRoutines(parameters);
+  const clientRoutines = new TestClientRoutines({ N, g }, sha1);
 
-  const serverRoutines = new TestServerRoutines(parameters);
+  const serverRoutines = new TestServerRoutines({ N, g }, sha1);
 
   const salt = bigInt("BEB25379D1A8581EB5A727673A2441EE", 16);
   const verifier = await createVerifier(

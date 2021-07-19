@@ -1,5 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
-import { SRPParameters } from "./parameters";
+import { PrimeGroup } from "./parameters";
 import { SRPRoutines } from "./routines";
 import { modPow } from "./utils";
 
@@ -25,7 +25,7 @@ export class SRPServerSession {
     const b = this.routines.generatePrivateValue();
     const k = await this.routines.computeK();
     const B = computeServerPublicValue(
-      this.routines.parameters,
+      this.routines.primeGroup,
       k,
       verifier,
       b,
@@ -93,7 +93,7 @@ export class SRPServerSessionStep1 {
 
     const u = await this.routines.computeU(A, this.B);
     const S = computeServerSessionKey(
-      this.routines.parameters.primeGroup.N,
+      this.routines.primeGroup.N,
       this.verifier,
       u,
       A,
@@ -161,14 +161,14 @@ export class SRPServerSessionStep1 {
 }
 
 const computeServerPublicValue = (
-  parameters: SRPParameters,
+  primeGroup: PrimeGroup,
   k: BigInteger,
   v: BigInteger,
   b: BigInteger,
 ): BigInteger => {
-  return modPow(parameters.primeGroup.g, b, parameters.primeGroup.N)
+  return modPow(primeGroup.g, b, primeGroup.N)
     .add(v.multiply(k))
-    .mod(parameters.primeGroup.N);
+    .mod(primeGroup.N);
 };
 
 const computeServerSessionKey = (

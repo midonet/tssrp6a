@@ -1,5 +1,6 @@
 import bigInt, { BigInteger } from "big-integer";
-import { SRPParameters } from "./parameters";
+import { HashFunction, sha512 } from "./cross-env-crypto";
+import { knownPrimeGroups, PrimeGroup } from "./parameters";
 import {
   arrayBufferToBigInt,
   bigIntToArrayBuffer,
@@ -21,28 +22,39 @@ import {
  */
 
 export class SRPRoutines {
-  constructor(public readonly parameters: SRPParameters) {}
+  public readonly NBits: number;
+
+  constructor(
+    public readonly primeGroup: PrimeGroup = knownPrimeGroups[2048],
+    public readonly H: HashFunction = sha512,
+  ) {
+    this.NBits = this.primeGroup.N.toString(2).length;
+
+    if (!H) {
+      throw new Error("Hash function required");
+    }
+  }
 
   public hash(...as: ArrayBuffer[]): Promise<ArrayBuffer> {
-    return hash(this.parameters, ...as);
+    return hash(this.H, ...as);
   }
 
   public hashPadded(...as: ArrayBuffer[]): Promise<ArrayBuffer> {
-    const targetLength = Math.trunc((this.parameters.NBits + 7) / 8);
-    return hashPadded(this.parameters, targetLength, ...as);
+    const targetLength = Math.trunc((this.NBits + 7) / 8);
+    return hashPadded(this.H, targetLength, ...as);
   }
 
   public async computeK(): Promise<BigInteger> {
     return arrayBufferToBigInt(
       await this.hashPadded(
-        bigIntToArrayBuffer(this.parameters.primeGroup.N),
-        bigIntToArrayBuffer(this.parameters.primeGroup.g),
+        bigIntToArrayBuffer(this.primeGroup.N),
+        bigIntToArrayBuffer(this.primeGroup.g),
       ),
     );
   }
 
   public async generateRandomSalt(numBytes?: number): Promise<BigInteger> {
-    const HBits = await hashBitCount(this.parameters);
+    const HBits = await hashBitCount(this.H);
     // Recommended salt bytes is > than Hash output bytes. We default to twice
     // the bytes used by the hash
     const saltBytes = numBytes || (2 * HBits) / 8;
@@ -76,34 +88,26 @@ export class SRPRoutines {
   }
 
   public computeVerifier(x: BigInteger): BigInteger {
-    return modPow(
-      this.parameters.primeGroup.g,
-      x,
-      this.parameters.primeGroup.N,
-    );
+    return modPow(this.primeGroup.g, x, this.primeGroup.N);
   }
 
   public generatePrivateValue(): BigInteger {
-    const numBits = Math.max(256, this.parameters.NBits);
+    const numBits = Math.max(256, this.NBits);
     let bi: BigInteger;
 
     do {
-      bi = generateRandomBigInt(numBits / 8).mod(this.parameters.primeGroup.N);
+      bi = generateRandomBigInt(numBits / 8).mod(this.primeGroup.N);
     } while (bi.equals(bigInt("0")));
 
     return bi;
   }
 
   public computeClientPublicValue(a: BigInteger): BigInteger {
-    return modPow(
-      this.parameters.primeGroup.g,
-      a,
-      this.parameters.primeGroup.N,
-    );
+    return modPow(this.primeGroup.g, a, this.primeGroup.N);
   }
 
   public isValidPublicValue(value: BigInteger): boolean {
-    return !value.mod(this.parameters.primeGroup.N).equals(bigInt("0"));
+    return !value.mod(this.primeGroup.N).equals(bigInt("0"));
   }
 
   public async computeU(A: BigInteger, B: BigInteger): Promise<BigInteger> {
@@ -149,9 +153,9 @@ export class SRPRoutines {
     a: BigInteger,
     B: BigInteger,
   ): BigInteger {
-    const N = this.parameters.primeGroup.N;
+    const N = this.primeGroup.N;
     const exp = u.multiply(x).add(a);
-    const tmp = modPow(this.parameters.primeGroup.g, x, N).multiply(k).mod(N);
+    const tmp = modPow(this.primeGroup.g, x, N).multiply(k).mod(N);
 
     return modPow(B.add(N).subtract(tmp), exp, N);
   }
