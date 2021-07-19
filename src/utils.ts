@@ -132,10 +132,10 @@ export const createVerifier = async (
   return routines.computeVerifier(x);
 };
 
-export interface IVerifierAndSalt {
+export type IVerifierAndSalt = {
   v: BigInteger;
   s: BigInteger;
-}
+};
 
 export const createVerifierAndSalt = async (
   routines: SRPRoutines,

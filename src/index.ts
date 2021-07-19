@@ -1,4 +1,4 @@
-export { HashFunction, PrimeGroup, SRPParameters } from "./parameters";
+export { HashFunction, knownPrimeGroups } from "./parameters";
 export { SRPRoutines } from "./routines";
 export {
   SRPClientSession,

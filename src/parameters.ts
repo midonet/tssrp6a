@@ -1,20 +1,15 @@
 import bigInt, { BigInteger } from "big-integer";
 import { sha512 } from "./cross-env-crypto";
 
-export interface PrimeGroup {
-  N: BigInteger; // the prime
-  g: BigInteger; // a generator of the multiplicative group Zn
-}
-
 export type HashFunction = (data: ArrayBuffer) => Promise<ArrayBuffer>;
 
 export class SRPParameters {
-  public static PrimeGroup: { [key: number]: PrimeGroup };
+  public static PrimeGroup: { [key: number]: any };
 
   public readonly NBits: number;
 
   constructor(
-    public readonly primeGroup: PrimeGroup = SRPParameters.PrimeGroup[2048],
+    public readonly primeGroup: any = knownPrimeGroups[2048],
     public readonly H: HashFunction = sha512,
   ) {
     this.NBits = this.primeGroup.N.toString(2).length;
@@ -29,7 +24,7 @@ const bigIntFromHex = (hex: string): BigInteger =>
   bigInt(hex.replace(/\s+/g, ""), 16);
 
 // From https://datatracker.ietf.org/doc/html/rfc5054#appendix-A
-SRPParameters.PrimeGroup = {
+export const knownPrimeGroups = {
   1024: {
     N: bigIntFromHex(`
 EEAF0AB9 ADB38DD6 9C33F80A FA8FC5E8 60726187 75FF3C0B 9EA2314C
