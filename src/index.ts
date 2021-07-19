@@ -1,4 +1,4 @@
-export { sha1, sha256, sha384, sha512 } from "./cross-env-crypto";
+export { hashFunctions } from "./cross-env-crypto";
 export { knownPrimeGroups } from "./parameters";
 export { SRPRoutines } from "./routines";
 export {

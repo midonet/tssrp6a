@@ -1,5 +1,5 @@
 import bigInt, { BigInteger } from "big-integer";
-import { HashFunction, sha512 } from "./cross-env-crypto";
+import { hashFunctions } from "./cross-env-crypto";
 import { knownPrimeGroups, PrimeGroup } from "./parameters";
 import {
   arrayBufferToBigInt,
@@ -26,7 +26,7 @@ export class SRPRoutines {
 
   constructor(
     public readonly primeGroup: PrimeGroup = knownPrimeGroups[2048],
-    public readonly H: HashFunction = sha512,
+    public readonly H = hashFunctions["SHA-512"],
   ) {
     this.NBits = this.primeGroup.N.toString(2).length;
 

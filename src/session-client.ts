@@ -5,6 +5,7 @@ import { SRPRoutines } from "./routines";
 
 export class SRPClientSession {
   constructor(private readonly routines: SRPRoutines) {}
+
   public async step1(
     /**
      * User identity

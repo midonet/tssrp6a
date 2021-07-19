@@ -9,16 +9,12 @@ if (!webcrypto || !webcrypto.subtle) {
 
 export const randomBytes = webcrypto.getRandomValues.bind(webcrypto);
 
+export type HashAlgorithm = "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
 export type HashFunction = (data: ArrayBuffer) => Promise<ArrayBuffer>;
 
-export const sha1: HashFunction = (data) =>
-  webcrypto.subtle.digest("SHA-1", data);
-
-export const sha256: HashFunction = (data) =>
-  webcrypto.subtle.digest("SHA-256", data);
-
-export const sha384: HashFunction = (data) =>
-  webcrypto.subtle.digest("SHA-384", data);
-
-export const sha512: HashFunction = (data) =>
-  webcrypto.subtle.digest("SHA-512", data);
+export const hashFunctions: Record<HashAlgorithm, HashFunction> = {
+  "SHA-1": (data) => webcrypto.subtle.digest("SHA-1", data),
+  "SHA-256": (data) => webcrypto.subtle.digest("SHA-256", data),
+  "SHA-384": (data) => webcrypto.subtle.digest("SHA-384", data),
+  "SHA-512": (data) => webcrypto.subtle.digest("SHA-512", data),
+};

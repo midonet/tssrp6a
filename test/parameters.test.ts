@@ -1,5 +1,5 @@
 import { SRPRoutines } from "../src";
-import { sha1, sha512 } from "../src/cross-env-crypto";
+import { hashFunctions } from "../src/cross-env-crypto";
 import { knownPrimeGroups } from "../src/parameters";
 import { bigIntToArrayBuffer, hashBitCount } from "../src/utils";
 import { test } from "./tests";
@@ -18,13 +18,17 @@ test("hash bit count", async (t) => {
   t.plan(2);
 
   t.equals(
-    await hashBitCount(new SRPRoutines(knownPrimeGroups[2048], sha1).H),
+    await hashBitCount(
+      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-1"]).H,
+    ),
     160,
     "SHA-1",
   );
 
   t.equals(
-    await hashBitCount(new SRPRoutines(knownPrimeGroups[2048], sha512).H),
+    await hashBitCount(
+      new SRPRoutines(knownPrimeGroups[2048], hashFunctions["SHA-512"]).H,
+    ),
     512,
     "SHA-512",
   );
