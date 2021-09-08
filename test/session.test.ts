@@ -10,9 +10,6 @@ import {
 } from "../src/utils";
 import { test } from "./tests";
 
-const ZERO = bigInt("0");
-const ONE = bigInt("1");
-
 const TEST_ROUTINES = new SRPRoutines();
 
 /**
@@ -106,7 +103,7 @@ test("error - bad/empty A or M1", async (t) => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
     return await (
       await serverSession.step1("pepi", someBigInteger, someBigInteger)
-    ).step2(null!, ONE);
+    ).step2(null!, bigInt.one);
   }, /Client public value \(A\) must not be null/i);
   await t.rejects(async () => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
@@ -130,6 +127,6 @@ test("error - bad/empty A or M1", async (t) => {
     const serverSession = new SRPServerSession(TEST_ROUTINES);
     return await (
       await serverSession.step1("pepi", someBigInteger, someBigInteger)
-    ).step2(ZERO, someBigInteger);
+    ).step2(bigInt.zero, someBigInteger);
   }, /Invalid Client public value \(A\): /i);
 });

@@ -8,7 +8,6 @@ import {
   hash,
   hashBitCount,
   hashPadded,
-  modPow,
   stringToArrayBuffer,
 } from "./utils";
 
@@ -96,7 +95,7 @@ export class SRPRoutines {
   }
 
   public computeVerifier(x: BigInteger): BigInteger {
-    return modPow(this.primeGroup.g, x, this.primeGroup.N);
+    return this.primeGroup.g.modPow(x, this.primeGroup.N);
   }
 
   public generatePrivateValue(): BigInteger {
@@ -111,7 +110,7 @@ export class SRPRoutines {
   }
 
   public computeClientPublicValue(a: BigInteger): BigInteger {
-    return modPow(this.primeGroup.g, a, this.primeGroup.N);
+    return this.primeGroup.g.modPow(a, this.primeGroup.N);
   }
 
   public isValidPublicValue(value: BigInteger): boolean {
@@ -163,8 +162,8 @@ export class SRPRoutines {
   ): BigInteger {
     const N = this.primeGroup.N;
     const exp = u.multiply(x).add(a);
-    const tmp = modPow(this.primeGroup.g, x, N).multiply(k).mod(N);
+    const tmp = this.primeGroup.g.modPow(x, N).multiply(k).mod(N);
 
-    return modPow(B.add(N).subtract(tmp), exp, N);
+    return B.add(N).subtract(tmp).modPow(exp, N);
   }
 }

@@ -2,10 +2,6 @@ import bigInt, { BigInteger } from "big-integer";
 import { HashFunction, randomBytes } from "./cross-env-crypto";
 import { SRPRoutines } from "./routines";
 
-const ZERO: BigInteger = bigInt("0");
-const ONE: BigInteger = bigInt("1");
-const TWO: BigInteger = bigInt("2");
-
 export const bigIntToArrayBuffer = (n: BigInteger): ArrayBuffer => {
   const hex = n.toString(16);
   const arrayBuffer = new ArrayBuffer(Math.ceil(hex.length / 2));
@@ -152,39 +148,6 @@ export const createVerifierAndSalt = async (
 
 export const hashBitCount = async (H: HashFunction): Promise<number> =>
   (await hash(H, bigIntToArrayBuffer(bigInt("1")))).byteLength * 8;
-
-/**
- * Calculates (x**pow) % mod
- * @param x base, non negative big int.
- * @param pow power, non negative power.
- * @param mod modulo, positive modulo for division.
- */
-export const modPow = (
-  x: BigInteger,
-  pow: BigInteger,
-  mod: BigInteger,
-): BigInteger => {
-  if (x < ZERO) {
-    throw new Error("Invalid base: " + x.toString());
-  }
-  if (pow < ZERO) {
-    throw new Error("Invalid power: " + pow.toString());
-  }
-  if (mod < ONE) {
-    throw new Error("Invalid modulo: " + mod.toString());
-  }
-  let result: BigInteger = ONE;
-  while (pow > ZERO) {
-    if (pow.mod(TWO).equals(ONE)) {
-      result = x.multiply(result).mod(mod);
-      pow = pow.subtract(ONE);
-    } else {
-      x = x.multiply(x).mod(mod);
-      pow = pow.divide(TWO);
-    }
-  }
-  return result;
-};
 
 const generateRandom = (numBytes: number): ArrayBuffer => {
   const u8 = new Uint8Array(numBytes);

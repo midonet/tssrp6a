@@ -6,15 +6,10 @@ import {
   createVerifier,
   generateRandomBigInt,
   generateRandomString,
-  modPow,
   padStartArrayBuffer,
   stringToArrayBuffer,
 } from "../src/utils";
 import { test } from "./tests";
-
-const ZERO = bigInt("0");
-const ONE = bigInt("1");
-const MINUS_ONE = bigInt("-1");
 
 test("#generateRandomString", (t) => {
   t.plan(2);
@@ -67,19 +62,19 @@ test("#createVerifierHexSalt errors", async (t) => {
 
 test("#bigIntToArrayBuffer", (t) => {
   t.plan(8);
-  let arrayBuffer = bigIntToArrayBuffer(ONE);
+  let arrayBuffer = bigIntToArrayBuffer(bigInt.one);
   let u8 = new Uint8Array(arrayBuffer);
   t.equals(1, arrayBuffer.byteLength);
   t.equals(1, u8[0], "One");
 
-  arrayBuffer = bigIntToArrayBuffer(ZERO);
+  arrayBuffer = bigIntToArrayBuffer(bigInt.zero);
   u8 = new Uint8Array(arrayBuffer);
   t.equals(1, arrayBuffer.byteLength);
   t.equals(0, u8[0], "Zero");
 
   t.deepLooseEqual(
     Uint8Array.from([0xff]),
-    new Uint8Array(bigIntToArrayBuffer(MINUS_ONE)),
+    new Uint8Array(bigIntToArrayBuffer(bigInt.minusOne)),
     "Negative values are partially supported",
   );
 
@@ -120,7 +115,7 @@ test("#paddArray", (t) => {
 
 test("#paddArray 1 byte", (t) => {
   t.plan(3);
-  const testHashArray = bigIntToArrayBuffer(ONE);
+  const testHashArray = bigIntToArrayBuffer(bigInt.one);
   t.equal(1, testHashArray.byteLength);
 
   const paddedLibArray = padStartArrayBuffer(testHashArray, 64);
@@ -128,71 +123,4 @@ test("#paddArray 1 byte", (t) => {
   const expectedArray = new Array(64).fill(0);
   expectedArray[63] = 1;
   t.deepEqual(Uint8Array.from(expectedArray), new Uint8Array(paddedLibArray));
-});
-
-test("#modPow valid inputs", (t) => {
-  t.plan(10);
-
-  const mod = bigInt("1000000007");
-  t.true(ONE.equals(modPow(ONE, ZERO, mod)), "1**0 == 1");
-  t.true(ONE.equals(modPow(ONE, ONE, mod)), "1**1 == 1");
-  t.true(ONE.equals(modPow(ONE, bigInt("1000"), mod)), "1**1000 == 1");
-
-  t.true(ZERO.equals(modPow(ZERO, ONE, mod)), "0**1 == 0");
-  t.true(ONE.equals(modPow(ZERO, ZERO, mod)), "0**0 == 1");
-  t.true(ZERO.equals(modPow(ZERO, bigInt("1024"), mod)), "0**1024 == 0");
-
-  t.true(
-    bigInt("243").equals(modPow(bigInt("3"), bigInt("5"), bigInt("244"))),
-    "3**5 == 243",
-  );
-  t.true(
-    ONE.equals(modPow(bigInt("3"), bigInt("5"), bigInt("11"))),
-    "3**5 % 11 == 1",
-  );
-  t.true(
-    bigInt("1024").equals(modPow(bigInt("2"), bigInt("10"), mod)),
-    "2**10 == 1024",
-  );
-  t.true(
-    bigInt("372410231729430638").equals(
-      modPow(bigInt("2"), bigInt("1023"), bigInt("1223432564564235345")),
-    ),
-    "2**1023 % big number is correct",
-  );
-});
-
-test("#modPow invalid inputs", (t) => {
-  t.plan(6);
-
-  t.throws(
-    () => modPow(MINUS_ONE, ONE, ONE),
-    /Invalid base/,
-    "Invalid base, negative",
-  );
-  t.throws(
-    () => modPow(ONE, MINUS_ONE, ONE),
-    /Invalid power/,
-    "Invalid power, negative",
-  );
-  t.throws(
-    () => modPow(ONE, ONE, MINUS_ONE),
-    /Invalid modulo/,
-    "Invalid modulo, negative",
-  );
-  t.throws(
-    () => modPow(ONE, ONE, ZERO),
-    /Invalid modulo/,
-    "Invalid modulo, zero",
-  );
-  t.throws(
-    () => modPow(bigInt("-485734857638473853465873465"), ONE, ONE),
-    /Invalid base/,
-    "Invalid base, bit negative",
-  );
-  t.throws(
-    () => modPow(MINUS_ONE, MINUS_ONE, MINUS_ONE),
-    /Invalid base/,
-    "All invalids",
-  );
 });

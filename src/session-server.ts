@@ -1,7 +1,6 @@
 import bigInt, { BigInteger } from "big-integer";
 import { PrimeGroup } from "./parameters";
 import { SRPRoutines } from "./routines";
-import { modPow } from "./utils";
 
 // Variable names match the RFC (I, IH, S, b, B, salt, b, A, M1, M2...)
 
@@ -166,7 +165,8 @@ const computeServerPublicValue = (
   v: BigInteger,
   b: BigInteger,
 ): BigInteger => {
-  return modPow(primeGroup.g, b, primeGroup.N)
+  return primeGroup.g
+    .modPow(b, primeGroup.N)
     .add(v.multiply(k))
     .mod(primeGroup.N);
 };
@@ -178,5 +178,5 @@ const computeServerSessionKey = (
   A: BigInteger,
   b: BigInteger,
 ): BigInteger => {
-  return modPow(modPow(v, u, N).multiply(A), b, N);
+  return v.modPow(u, N).multiply(A).modPow(b, N);
 };
