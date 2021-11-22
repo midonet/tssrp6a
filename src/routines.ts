@@ -66,8 +66,8 @@ export class SRPRoutines {
     );
   }
 
-  public async computeIdentityHash(_: string, P: string): Promise<ArrayBuffer> {
-    return await this.hash(stringToArrayBuffer(P));
+  public async computeIdentityHash(I: string, P: string): Promise<ArrayBuffer> {
+    return await this.hash(stringToArrayBuffer(I), stringToArrayBuffer(P));
   }
 
   public computeVerifier(x: bigint): bigint {
@@ -108,14 +108,16 @@ export class SRPRoutines {
   }
 
   public async computeClientEvidence(
-    _I: string,
-    _s: bigint,
+    I: string,
+    s: bigint,
     A: bigint,
     B: bigint,
     S: bigint,
   ): Promise<bigint> {
     return arrayBufferToBigInt(
       await this.hash(
+        stringToArrayBuffer(I),
+        bigIntToArrayBuffer(s),
         bigIntToArrayBuffer(A),
         bigIntToArrayBuffer(B),
         bigIntToArrayBuffer(S),

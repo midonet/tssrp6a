@@ -115,8 +115,6 @@ SRP alone only prevents a man-in-the-middle attack from _reading_ the password, 
 
 Always use SRP in combination with HTTPS. Browsers can be vulnerable to: having malicious certificates installed beforehand, rogue certificates in the wild, server misconfiguration, bugs like the heartbleed attack, servers leaking password into errors and logs. SRP in the browser offers an additional hurdle and may prevent some mistakes from escalating.
 
-The client can choose to exclude the identity of its computations or not. If excluded, the id cannot be changed. But this problem is better solved by an application schema that separates "identity" from "authentication", so that one identity can have multiple authentications. This allows to switch identity + password, and also to user more than one way of logging in (think "login with email+password, google, or facebook").
-
 ## Serialization
 
 The SRP protocol and therefore this library is stateful. Each step sets various internal state. Due to the randomness of some of this state (namely the public and private values), repeating the step methods with the same arguments is unlikely (almost definitely) to result in the same state. This proves to be an issue when using a stateless protocol such as HTTP (as opposed to websockets). The server "session" state (the server step 1 state) might not be easily kept in memory. Therefore, we provide a way to serialize and deserialize the step classes in order to restore state. [serialize.test.ts](test/serialize.test.ts) shows some examples here's an explanation of how it works:
@@ -144,19 +142,48 @@ Supported steps/classes for serialization are:
 
 While the password is **never** kept directly in the state, hashes of it are. If an adversary is able to access the serialized state it will likely open you up to some kind of MITM attack and depending on the step, may allow an attacker to perform a bruteforce and/or dictionary attack to retrieve the password. **Do not expose the serialized data.** For clients, this means do not send it over the network and be careful where you store it. For servers, only send it in encrypted form to parties you trust (such as your database). If you believe state at anytime may have been exposed, it is suggested you change passwords as soon as possible.
 
-## Notes
+## Identity and Nimbus implementation
 
-This package's default configuration matches the following Java's 
-[Nimbus SRP](https://connect2id.com/products/nimbus-srp) configuration:
+This package's default configuration matches SRP6a: the identity is included in the verifier generation. This makes it impossible to detect if [two users share the same password](https://crypto.stackexchange.com/questions/8626/why-is-tls-srp-verifier-based-on-user-name/9430#9430) but also does not allow a client to change its "identity" without regenerating password.
+
+But this problem is better solved by an application schema that separates "identity" from "authentication". In general, this isolation has more benefits like allowing multiple authentication methods for an account. The "authentication id" could then be used as "identity" in SRP6a computations, as long as it unique and belongs to exactly one user. The user's "identity" could be changed without impacting the linked authentication.
+
+To follow Java's [Nimbus SRP](https://connect2id.com/products/nimbus-srp) configuration, which does NOT include the identity in computations:
 ```Java
 SRP6CryptoParams.getInstance(2048, "SHA-512")
 ```
 
-The default routines does not
-strictly follow SRP6a RFC because user identity is NOT included in the verifier generation.
-This makes possible for malicious server to detect if
-[two users share the same password](https://crypto.stackexchange.com/questions/8626/why-is-tls-srp-verifier-based-on-user-name/9430#9430)
-but also allows client to change it "identity" without regenerating password.
+```TypeScript
+import {
+  SRPRoutines,
+  arrayBufferToBigInt,
+  bigIntToArrayBuffer,
+  stringToArrayBuffer,
+} from "tssrp6a";
 
-[This example](test/srp6a.test.ts) shows how to make SRP client strictly compliant with
-SRP6a specification.
+class NimbusRoutines extends SRPRoutines {
+  public async computeIdentityHash(
+    _I: string,
+    P: string,
+  ): Promise<ArrayBuffer> {
+    return await this.hash(stringToArrayBuffer(P));
+  }
+  public async computeClientEvidence(
+    _I: string,
+    _s: bigint,
+    A: bigint,
+    B: bigint,
+    S: bigint,
+  ): Promise<bigint> {
+    return arrayBufferToBigInt(
+      await this.hash(
+        bigIntToArrayBuffer(A),
+        bigIntToArrayBuffer(B),
+        bigIntToArrayBuffer(S),
+      ),
+    );
+  }
+}
+```
+
+See [the nimbus test](test/nimbus_compatibility.test.ts) for reference.
