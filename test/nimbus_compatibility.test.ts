@@ -2,13 +2,42 @@ import { SRPParameters } from "../src/parameters";
 import { SRPRoutines } from "../src/routines";
 import { SRPClientSession } from "../src/session-client";
 import { SRPServerSession } from "../src/session-server";
-import { createVerifier } from "../src/utils";
+import {
+  arrayBufferToBigInt,
+  bigIntToArrayBuffer,
+  createVerifier,
+  stringToArrayBuffer,
+} from "../src/utils";
 import { test } from "./tests";
+
+class NimbusRoutines extends SRPRoutines {
+  public async computeIdentityHash(
+    _I: string,
+    P: string,
+  ): Promise<ArrayBuffer> {
+    return await this.hash(stringToArrayBuffer(P));
+  }
+  public async computeClientEvidence(
+    _I: string,
+    _s: bigint,
+    A: bigint,
+    B: bigint,
+    S: bigint,
+  ): Promise<bigint> {
+    return arrayBufferToBigInt(
+      await this.hash(
+        bigIntToArrayBuffer(A),
+        bigIntToArrayBuffer(B),
+        bigIntToArrayBuffer(S),
+      ),
+    );
+  }
+}
 
 test("#SRPSession compatible with nimbusds java implementation, no U padding", async (t) => {
   t.plan(3);
 
-  class TestRoutines extends SRPRoutines {
+  class TestRoutines extends NimbusRoutines {
     public generatePrivateValue(): bigint {
       return (
         BigInt(
@@ -70,7 +99,7 @@ test("#SRPSession compatible with nimbusds java implementation, no U padding", a
 
 test("#SRPSession compatible with java nimbus JS, U padding", async (t) => {
   t.plan(1);
-  class TestClientRoutines extends SRPRoutines {
+  class TestClientRoutines extends NimbusRoutines {
     public generatePrivateValue(): bigint {
       return (
         BigInt(
@@ -80,7 +109,7 @@ test("#SRPSession compatible with java nimbus JS, U padding", async (t) => {
     }
   }
 
-  class TestServerRoutines extends SRPRoutines {
+  class TestServerRoutines extends NimbusRoutines {
     public generatePrivateValue(): bigint {
       return (
         BigInt(
